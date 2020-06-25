@@ -34,8 +34,21 @@ class TelegramClient
         return (bool) $result;
     }
 
+    public function deleteMessage(int $chatId, int $messageId): bool
+    {
+        $data = [
+            'form_params' => [
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+            ],
+        ];
+        $result = $this->execute('deleteMessage', $data);
+        return (bool) $result;
+    }
+
     protected function execute(string $method, array $data): array
     {
+        $this->logger->debug($method . 'Request:', $data);
         $client = new Client(
             [
                 'base_uri' => static::BASE_URL . App::get('telegramToken') . '/',
@@ -67,6 +80,7 @@ class TelegramClient
             return [];
         }
 
+        $this->logger->debug($method . 'Response:', $response);
         return $response['result'];
     }
 }
