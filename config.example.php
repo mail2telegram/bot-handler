@@ -18,6 +18,17 @@ return [
         'user' => 'guest',
         'pwd' => 'guest',
     ],
+    'test' => [
+        'accounts' => [
+            0 => [
+                'email' => 'mail2telegram.app@gmail.com',
+                'pwd' => 'XXX',
+                'smtpHost' => 'tls://smtp.gmail.com',
+                'smtpPort' => 587,
+            ],
+        ],
+        'mailTo' => 'mail2telegram.app@gmail.com',
+    ],
     LoggerInterface::class => static function () {
         $stream = new StreamHandler(STDERR);
         $stream->setFormatter(new CliFormatter());
