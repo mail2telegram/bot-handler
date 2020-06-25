@@ -2,18 +2,22 @@
 
 namespace App;
 
+use App\Client\SmtpClient;
 use App\Client\TelegramClient;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class Handler
 {
     protected LoggerInterface $logger;
-    private TelegramClient $telegram;
+    protected TelegramClient $telegram;
+    protected SmtpClient $mailer;
 
-    public function __construct(LoggerInterface $logger, TelegramClient $telegram)
+    public function __construct(LoggerInterface $logger, TelegramClient $telegram, SmtpClient $mailer)
     {
         $this->logger = $logger;
         $this->telegram = $telegram;
+        $this->mailer = $mailer;
     }
 
     public function handle(array $update): void
@@ -22,6 +26,18 @@ class Handler
 
         if (isset($update['message']['text']) && $update['message']['text'] === '/register') {
             $this->draftRegister($update);
+            return;
+        }
+
+        if (isset($update['message']['reply_to_message'], $update['message']['text'])) {
+            try {
+                $result = $this->mailer->draftSend($update['message']['text']);
+            } catch (Throwable $e) {
+                $this->logger->error((string) $e);
+                $result = false;
+            }
+            $chatId = $update['message']['chat']['id'];
+            $this->telegram->sendMessage($chatId, $result ? 'Отправлено' : 'Ошибка');
             return;
         }
 
