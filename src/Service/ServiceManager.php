@@ -33,7 +33,12 @@ final class ServiceManager implements ContainerInterface
                     static $connect;
                     if (null === $connect) {
                         $config = App::get('amqp');
-                        $connect = new AMQPStreamConnection($config['host'], $config['port'], $config['user'], $config['pwd']);
+                        $connect = new AMQPStreamConnection(
+                            $config['host'],
+                            $config['port'],
+                            $config['user'],
+                            $config['pwd']
+                        );
                     }
                     return $connect;
                 },
