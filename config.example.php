@@ -6,9 +6,8 @@ use pahanini\Monolog\Formatter\CliFormatter;
 use Psr\Log\LoggerInterface;
 
 return [
+    'workerMemoryLimit' => 134_217_728, // 128MB
     'telegramToken' => 'XXX',
-    'telegramLongPollingTimeout' => 2,
-    'telegramUpdatesLimit' => 100, // 1-100
     'queue' => 'telegram_update',
     'redis' => [
         'host' => 'm2t_redis',

@@ -9,17 +9,20 @@ use Throwable;
 
 final class Worker
 {
-    private const MEMORY_LIMIT = 134_217_728; // 128MB
-
     private LoggerInterface $logger;
     private AMQPChannel $channel;
+    private Handler $handler;
+    private int $memoryLimit;
 
     public function __construct(
         LoggerInterface $logger,
-        AMQPChannel $channel
+        AMQPChannel $channel,
+        Handler $handler
     ) {
         $this->logger = $logger;
         $this->channel = $channel;
+        $this->handler = $handler;
+        $this->memoryLimit = App::get('workerMemoryLimit');
 
         $this->logger->info('Worker started');
         pcntl_signal(SIGTERM, [$this, 'signalHandler']);
@@ -46,7 +49,7 @@ final class Worker
             if (defined('TERMINATED')) {
                 break;
             }
-            if (memory_get_usage(true) >= self::MEMORY_LIMIT) {
+            if (memory_get_usage(true) >= $this->memoryLimit) {
                 $this->logger->warning('Worker out of memory');
                 break;
             }
@@ -61,7 +64,7 @@ final class Worker
         try {
             $update = json_decode($msg->body, true, 512, JSON_THROW_ON_ERROR);
             $this->logger->debug('Task:', $update);
-            // @todo handle message
+            $this->handler->handle($update);
         } catch (Throwable $e) {
             $this->logger->error((string) $e);
         }
