@@ -1,5 +1,6 @@
 <?php
 
+use App\Model\Account;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
@@ -20,12 +21,17 @@ return [
     ],
     'test' => [
         'accounts' => [
-            0 => [
-                'email' => 'mail2telegram.app@gmail.com',
-                'pwd' => 'XXX',
-                'smtpHost' => 'tls://smtp.gmail.com',
-                'smtpPort' => 587,
-            ],
+            new Account(
+                'mail2telegram.app@gmail.com',
+                'XXX',
+                123456,
+                'imap.gmail.com',
+                993,
+                'ssl',
+                'smtp.gmail.com',
+                465,
+                'ssl'
+            ),
         ],
         'mailTo' => 'mail2telegram.app@gmail.com',
     ],

@@ -13,7 +13,7 @@ class Handler
     protected TelegramClient $telegram;
     protected SmtpClient $mailer;
 
-    protected const MSG_REGISTER = "Напишите email и пароль через пробел:";
+    protected const MSG_REGISTER = 'Напишите email и пароль через пробел:';
 
     public function __construct(LoggerInterface $logger, TelegramClient $telegram, SmtpClient $mailer)
     {
@@ -47,8 +47,8 @@ class Handler
                 && $msg['reply_to_message']['from']['is_bot'] === true
                 && $msg['reply_to_message']['text'] === static::MSG_REGISTER
             ) {
-                $accountData = $msg['text'];
                 // @todo validate, get imap and smtp host/port, save to redis
+                $accountData = $msg['text'];
                 $this->logger->debug('$accountData: ' . $accountData);
                 $this->telegram->deleteMessage($chatId, $msg['message_id']);
                 $this->telegram->sendMessage($chatId, 'Принято!');
@@ -61,7 +61,8 @@ class Handler
                 // && is reply to mail
             ) {
                 try {
-                    $result = $this->mailer->draftSend($msg['text']);
+                    $account = App::get('test')['accounts'][0];
+                    $result = $this->mailer->draftSend($account, $msg['text']);
                 } catch (Throwable $e) {
                     $this->logger->error((string) $e);
                     $result = false;
