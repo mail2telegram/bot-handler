@@ -2,8 +2,7 @@
 
 namespace App\Client;
 
-use App\App;
-use App\Model\Account;
+use App\Model\Email;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 
@@ -21,12 +20,14 @@ class SmtpClient
     }
 
     /**
-     * @param \App\Model\Account $account
-     * @param string             $text
+     * @param \App\Model\Email $account
+     * @param string           $to
+     * @param string           $subject
+     * @param string           $text
      * @return bool
      * @throws \PHPMailer\PHPMailer\Exception
      */
-    public function draftSend(Account $account, string $text): bool
+    public function send(Email $account, string $to, string $subject, string $text): bool
     {
         $this->mailer->Host = $account->smtpHost;
         $this->mailer->Port = $account->smtpPort;
@@ -34,11 +35,11 @@ class SmtpClient
         $this->mailer->Username = $account->email;
         $this->mailer->Password = $account->pwd;
 
-        $this->mailer->Subject = 'Test mail from M2T';
+        $this->mailer->Subject = $subject;
         $this->mailer->Body = $text;
 
         $this->mailer->setFrom($account->email);
-        $this->mailer->addAddress(App::get('test')['mailTo']);
+        $this->mailer->addAddress($to);
         return $this->mailer->send();
     }
 }

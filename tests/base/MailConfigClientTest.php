@@ -1,8 +1,6 @@
 <?php
 
-/** @noinspection PhpIllegalPsrClassPathInspection */
-
-/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpIllegalPsrClassPathInspection PhpUnhandledExceptionInspection */
 
 use App\App;
 use Codeception\Test\Unit;

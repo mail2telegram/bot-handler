@@ -61,8 +61,9 @@ class Handler
                 // && is reply to mail
             ) {
                 try {
-                    $account = App::get('test')['accounts'][0];
-                    $result = $this->mailer->draftSend($account, $msg['text']);
+                    $account = App::get('test')['emails'][0];
+                    $to = App::get('test')['mailTo'];
+                    $result = $this->mailer->send($account, $to, 'Test mail from M2T', $msg['text']);
                 } catch (Throwable $e) {
                     $this->logger->error((string) $e);
                     $result = false;
