@@ -2,7 +2,7 @@
 
 namespace App\Client;
 
-use App\Model\Email;
+use M2T\Model\Email;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 
@@ -20,7 +20,7 @@ class SmtpClient
     }
 
     /**
-     * @param \App\Model\Email $account
+     * @param Email $account
      * @param string           $to
      * @param string           $subject
      * @param string           $text

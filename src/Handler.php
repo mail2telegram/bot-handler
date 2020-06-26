@@ -22,6 +22,11 @@ class Handler
         $this->mailer = $mailer;
     }
 
+    /**
+     * @param array $update
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     public function handle(array $update): void
     {
         // @todo handle updates here
@@ -74,7 +79,7 @@ class Handler
         }
 
         // @todo draft callback
-        if (isset($update['callback_query']['data']) && ['callback_query']['data'] === 'Cancel') {
+        if (isset($update['callback_query']['data']) && $update['callback_query']['data'] === 'Cancel') {
             // do something
             return;
         }

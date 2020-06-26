@@ -34,10 +34,11 @@ class MailConfigClient
                 $this->logger->debug('MailConfigClientResponse: 404');
                 return [];
             }
-            $this->logger->error('MailConfigClient: ' . $e);
+            $this->logger->error((string) $e);
             return [];
+            /** @phan-suppress-next-line PhanRedefinedClassReference */
         } catch (GuzzleException $e) {
-            $this->logger->error('MailConfigClient: ' . $e);
+            $this->logger->error((string) $e);
             return [];
         }
 
@@ -46,7 +47,7 @@ class MailConfigClient
         if (false === $xml) {
             $errors = libxml_get_errors();
             foreach ($errors as $e) {
-                $this->logger->error('MailConfigClient: ' . $e);
+                $this->logger->error((string) $e);
             }
             return [];
         }
