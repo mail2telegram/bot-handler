@@ -13,7 +13,7 @@ class Handler
     protected TelegramClient $telegram;
     protected SmtpClient $mailer;
 
-    protected const MSG_REGISTER = "Шутка :-)\nТолько email, логин и пароль.\nВведи их через запятую:";
+    protected const MSG_REGISTER = "Напишите email и пароль через пробел:";
 
     public function __construct(LoggerInterface $logger, TelegramClient $telegram, SmtpClient $mailer)
     {
@@ -32,8 +32,6 @@ class Handler
 
             // @todo draft register.step.0
             if (isset($msg['text']) && $msg['text'] === '/register') {
-                $this->telegram->sendMessage($chatId, 'Мне нужна твоя одежда и мотоцикл!');
-                sleep(1);
                 /** @noinspection JsonEncodingApiUsageInspection */
                 $this->telegram->sendMessage(
                     $chatId,
@@ -52,8 +50,8 @@ class Handler
                 $accountData = $msg['text'];
                 // @todo validate, get imap and smtp host/port, save to redis
                 $this->logger->debug('$accountData: ' . $accountData);
-                $this->telegram->sendMessage($chatId, 'Принято!');
                 $this->telegram->deleteMessage($chatId, $msg['message_id']);
+                $this->telegram->sendMessage($chatId, 'Принято!');
             }
 
             // @todo draft reply to mail
