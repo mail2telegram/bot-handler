@@ -12,7 +12,7 @@ class MailConfigClientTest extends Unit
 {
     protected BaseTester $tester;
 
-    public function testGetMailbox(): void
+    public function testGet(): void
     {
         new App();
 
