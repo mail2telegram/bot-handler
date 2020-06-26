@@ -1,6 +1,6 @@
 <?php
 
-use App\App;
+use M2T\App;
 use M2T\Model\Email;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;

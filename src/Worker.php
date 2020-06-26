@@ -2,6 +2,7 @@
 
 namespace App;
 
+use M2T\App;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Log\LoggerInterface;

@@ -2,7 +2,7 @@
 
 /** @noinspection PhpIllegalPsrClassPathInspection PhpUnhandledExceptionInspection */
 
-use App\App;
+use M2T\App;
 use App\Client\SmtpClient;
 use Codeception\Test\Unit;
 
