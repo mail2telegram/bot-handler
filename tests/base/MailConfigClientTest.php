@@ -4,7 +4,7 @@
 
 use M2T\App;
 use Codeception\Test\Unit;
-use App\Client\MailConfigClient;
+use M2T\Client\MailConfigClient;
 
 class MailConfigClientTest extends Unit
 {

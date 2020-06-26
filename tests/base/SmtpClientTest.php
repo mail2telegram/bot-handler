@@ -3,7 +3,7 @@
 /** @noinspection PhpIllegalPsrClassPathInspection PhpUnhandledExceptionInspection */
 
 use M2T\App;
-use App\Client\SmtpClient;
+use M2T\Client\SmtpClient;
 use Codeception\Test\Unit;
 
 class SmtpClientTest extends Unit

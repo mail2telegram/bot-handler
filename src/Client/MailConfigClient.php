@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Client;
+namespace M2T\Client;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
