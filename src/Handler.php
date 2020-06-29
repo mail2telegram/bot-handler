@@ -11,15 +11,13 @@ class Handler
 {
     protected LoggerInterface $logger;
     protected TelegramClient $telegram;
-    protected SmtpClient $mailer;
 
     protected const MSG_REGISTER = 'Напишите email и пароль через пробел:';
 
-    public function __construct(LoggerInterface $logger, TelegramClient $telegram, SmtpClient $mailer)
+    public function __construct(LoggerInterface $logger, TelegramClient $telegram)
     {
         $this->logger = $logger;
         $this->telegram = $telegram;
-        $this->mailer = $mailer;
     }
 
     /**
@@ -68,7 +66,8 @@ class Handler
                 try {
                     $account = App::get('test')['emails'][0];
                     $to = App::get('test')['mailTo'];
-                    $result = $this->mailer->send($account, $to, 'Test mail from M2T', $msg['text']);
+                    $mailer = App::get(SmtpClient::class); // we must create new client for each send
+                    $result = $mailer->send($account, $to, 'Test mail from M2T', $msg['text']);
                 } catch (Throwable $e) {
                     $this->logger->error((string) $e);
                     $result = false;

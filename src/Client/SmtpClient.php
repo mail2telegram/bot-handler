@@ -32,7 +32,8 @@ class SmtpClient
         $this->mailer->Host = $account->smtpHost;
         $this->mailer->Port = $account->smtpPort;
         $this->mailer->SMTPSecure = $account->smtpSocketType;
-        $this->mailer->Username = $account->email;
+
+        $this->mailer->Username = explode('@', $account->email)[0];
         $this->mailer->Password = $account->pwd;
 
         $this->mailer->Subject = $subject;
@@ -40,6 +41,13 @@ class SmtpClient
 
         $this->mailer->setFrom($account->email);
         $this->mailer->addAddress($to);
-        return $this->mailer->send();
+        $result = $this->mailer->send();
+
+        if (!$result) {
+            $this->mailer->Username = $account->email;
+            $result = $this->mailer->send();
+        }
+
+        return $result;
     }
 }

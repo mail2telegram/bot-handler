@@ -20,16 +20,4 @@ use Codeception\Actor;
 class UnitTester extends Actor
 {
     use _generated\UnitTesterActions;
-
-    public static function getReflectionMethod(string $class, string $method): ReflectionMethod {
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $refl_method = (new ReflectionClass($class))->getMethod($method);
-        $refl_method->setAccessible(true);
-        return $refl_method;
-    }
-
-    /** @noinspection PhpUnused */
-    public static function linarize(string $text): string {
-        return trim(preg_replace('/\s+/', ' ', $text));
-    }
 }

@@ -1,7 +1,10 @@
 <?php
 
-/** @noinspection PhpIllegalPsrClassPathInspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
 
+namespace Base;
+
+use BaseTester;
 use M2T\App;
 use Codeception\Test\Unit;
 use M2T\Client\MailConfigClient;
@@ -12,8 +15,6 @@ class MailConfigClientTest extends Unit
 
     public function testGet(): void
     {
-        new App();
-
         /** @var MailConfigClient $client */
         $client = App::get(MailConfigClient::class);
 
