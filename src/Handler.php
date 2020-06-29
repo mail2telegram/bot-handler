@@ -2,6 +2,7 @@
 
 namespace M2T;
 
+use M2T\Client\ImapClient;
 use M2T\Client\SmtpClient;
 use M2T\Client\TelegramClient;
 use Psr\Log\LoggerInterface;
@@ -68,6 +69,7 @@ class Handler
                     $to = App::get('test')['mailTo'];
                     $mailer = App::get(SmtpClient::class); // we must create new client for each send
                     $result = $mailer->send($account, $to, 'Test mail from M2T', $msg['text']);
+                    App::get(ImapClient::class)->appendToSent($account, $to, 'Test mail from M2T', $msg['text']);
                 } catch (Throwable $e) {
                     $this->logger->error((string) $e);
                     $result = false;
