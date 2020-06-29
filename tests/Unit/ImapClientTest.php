@@ -11,7 +11,7 @@ class ImapClientTest extends Unit
 {
     protected UnitTester $tester;
 
-    public function testBase(): void
+    public function testAppendToSent(): void
     {
         /** @var ImapClient $client */
         $client = App::get(ImapClient::class);

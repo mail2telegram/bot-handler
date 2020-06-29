@@ -53,7 +53,6 @@
   "scripts": {
     "test": "codecept run --debug",
     "test:cover": "codecept run --coverage --coverage-html",
-    "test:base": "codecept run Base --debug",
     "test:unit": "codecept run Unit --debug",
     "stan:md": "phpmd ./src ansi ./phpmd.xml",
     "stan:phan": "phan --color --progress-bar",
