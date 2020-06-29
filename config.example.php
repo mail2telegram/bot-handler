@@ -13,6 +13,7 @@ return [
     'workerMemoryLimit' => 134_217_728, // 128MB
     'telegramToken' => 'XXX',
     'queue' => 'telegram_update',
+    'testEmailPwd' => 'XXX',
     'redis' => [
         'host' => 'm2t_redis',
     ],
