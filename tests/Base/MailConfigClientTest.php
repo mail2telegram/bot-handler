@@ -2,21 +2,21 @@
 
 /** @noinspection PhpUnhandledExceptionInspection */
 
-namespace Unit;
+namespace Base;
 
-use UnitTester;
-use M2T\App;
+use BaseTester;
 use Codeception\Test\Unit;
+use M2T\App;
 use M2T\Client\MailConfigClient;
+use Psr\Log\LoggerInterface;
 
 class MailConfigClientTest extends Unit
 {
-    protected UnitTester $tester;
+    protected BaseTester $tester;
 
     public function testGet(): void
     {
-        /** @var MailConfigClient $client */
-        $client = App::get(MailConfigClient::class);
+        $client = new MailConfigClient(App::get(LoggerInterface::class));
 
         $expected = [];
         $result = $client->get('domain-not-found-x1y2.com');
