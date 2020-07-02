@@ -12,7 +12,9 @@ use Psr\Log\LoggerInterface;
 return [
     'workerMemoryLimit' => 134_217_728, // 128MB
     'telegramToken' => 'XXX',
-    'queue' => 'telegram_update',
+    'queueAmount' => 2,
+    'queueExchange' => 'telegram_update',
+    'queueRoutingKey' => '1',
     'testEmailPwd' => 'XXX',
     'redis' => [
         'host' => 'm2t_redis',

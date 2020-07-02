@@ -11,16 +11,19 @@ final class Worker
 {
     private LoggerInterface $logger;
     private AMQPChannel $channel;
+    private QueueLocator $locator;
     private Handler $handler;
     private int $memoryLimit;
 
     public function __construct(
         LoggerInterface $logger,
         AMQPChannel $channel,
+        QueueLocator $locator,
         Handler $handler
     ) {
         $this->logger = $logger;
         $this->channel = $channel;
+        $this->locator = $locator;
         $this->handler = $handler;
         $this->memoryLimit = App::get('workerMemoryLimit');
 
@@ -43,8 +46,16 @@ final class Worker
 
     public function loop(): void
     {
+        $queue = $this->locator->lock();
+        if (!$queue) {
+            $this->logger->error('No available queue');
+            return;
+        }
         $this->channel->basic_qos(null, 1, null);
-        $this->channel->basic_consume(App::get('queue'), getmypid(), false, true, false, false, [$this, 'task']);
+        $this->channel->exchange_declare(App::get('queueExchange'), 'x-consistent-hash', false, true, false);
+        $this->channel->queue_declare($queue, false, true, false, false);
+        $this->channel->queue_bind($queue, App::get('queueExchange'), App::get('queueRoutingKey'));
+        $this->channel->basic_consume($queue, '', false, true, false, false, [$this, 'task']);
         while ($this->channel->is_consuming()) {
             if (defined('TERMINATED')) {
                 break;
@@ -56,6 +67,8 @@ final class Worker
             /** @noinspection PhpUnhandledExceptionInspection */
             $this->channel->wait();
         }
+        $this->channel->queue_unbind($queue, App::get('queueExchange'), App::get('queueRoutingKey'));
+        $this->locator->release($queue);
         $this->logger->info('Worker finished');
     }
 
