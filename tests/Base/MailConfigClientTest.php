@@ -5,9 +5,10 @@
 namespace Base;
 
 use BaseTester;
-use M2T\App;
 use Codeception\Test\Unit;
+use M2T\App;
 use M2T\Client\MailConfigClient;
+use Psr\Log\LoggerInterface;
 
 class MailConfigClientTest extends Unit
 {
@@ -15,8 +16,7 @@ class MailConfigClientTest extends Unit
 
     public function testGet(): void
     {
-        /** @var MailConfigClient $client */
-        $client = App::get(MailConfigClient::class);
+        $client = new MailConfigClient(App::get(LoggerInterface::class));
 
         $expected = [];
         $result = $client->get('domain-not-found-x1y2.com');

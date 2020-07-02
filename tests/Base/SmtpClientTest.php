@@ -5,9 +5,9 @@
 namespace Base;
 
 use BaseTester;
-use M2T\App;
-use M2T\Client\SmtpClient;
 use Codeception\Test\Unit;
+use M2T\Client\SmtpClient;
+use PHPMailer\PHPMailer\PHPMailer;
 
 class SmtpClientTest extends Unit
 {
@@ -15,11 +15,10 @@ class SmtpClientTest extends Unit
 
     public function testSend(): void
     {
-        $account = $this->tester->accountProvider();
-        $to = $account->emails[0]->email;
-        foreach ($account->emails as $email) {
-            /** @var SmtpClient $client */
-            $client = App::get(SmtpClient::class);
+        $emails = $this->tester->emailProvider();
+        $to = $emails[0]->email;
+        foreach ($emails as $email) {
+            $client = new SmtpClient(new PHPMailer());
             $result = $client->send($email, $to, 'test', 'test');
             static::assertTrue($result, $email->email);
         }
