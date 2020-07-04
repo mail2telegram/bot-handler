@@ -13,11 +13,22 @@ class ImapClientTest extends Unit
     public function testAppendToSent(): void
     {
         $client = new ImapClient();
-        $emails = $this->tester->emailProvider();
-        $to = $emails[0]->email;
-        foreach ($emails as $email) {
-            $result = $client->appendToSent($email, $to, 'test', 'test');
-            static::assertTrue($result, $email->email);
+        $mailboxes = $this->tester->emailProvider();
+        $to = $mailboxes[0]->email;
+        foreach ($mailboxes as $mailbox) {
+            $result = $client->appendToSent($mailbox, $to, 'test', 'test');
+            static::assertTrue($result, $mailbox->email);
         }
+    }
+
+    // @todo draft
+    protected function testDelete(): void
+    {
+        $client = new ImapClient();
+        $mailbox = $this->tester->emailProvider()[0];
+        $mailId = 94;
+
+        $result = $client->delete($mailbox, $mailId);
+        static::assertTrue($result, $mailbox->email);
     }
 }
