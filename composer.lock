@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f74bc9874d59aa06ef18731eeb34e169",
+    "content-hash": "bce1b0c1fdf44fd76fba8811d79f14f5",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -197,16 +197,16 @@
         },
         {
             "name": "mail2telegram/common",
-            "version": "v1.0.9",
+            "version": "v1.0.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mail2telegram/common.git",
-                "reference": "7c9510d3973d41f3b9bda1ad9acd8415cfa36c03"
+                "reference": "149104fe356515d1bd638308f28d2d507fa10050"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mail2telegram/common/zipball/7c9510d3973d41f3b9bda1ad9acd8415cfa36c03",
-                "reference": "7c9510d3973d41f3b9bda1ad9acd8415cfa36c03",
+                "url": "https://api.github.com/repos/mail2telegram/common/zipball/149104fe356515d1bd638308f28d2d507fa10050",
+                "reference": "149104fe356515d1bd638308f28d2d507fa10050",
                 "shasum": ""
             },
             "require": {
@@ -272,10 +272,10 @@
                 }
             ],
             "support": {
-                "source": "https://github.com/mail2telegram/common/tree/v1.0.9",
+                "source": "https://github.com/mail2telegram/common/tree/v1.0.10",
                 "issues": "https://github.com/mail2telegram/common/issues"
             },
-            "time": "2020-07-02T10:24:50+00:00"
+            "time": "2020-07-04T07:00:54+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -1370,16 +1370,16 @@
         },
         {
             "name": "codeception/stub",
-            "version": "3.6.1",
+            "version": "3.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeception/Stub.git",
-                "reference": "a3ba01414cbee76a1bced9f9b6b169cc8d203880"
+                "reference": "468dd5fe659f131fc997f5196aad87512f9b1304"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeception/Stub/zipball/a3ba01414cbee76a1bced9f9b6b169cc8d203880",
-                "reference": "a3ba01414cbee76a1bced9f9b6b169cc8d203880",
+                "url": "https://api.github.com/repos/Codeception/Stub/zipball/468dd5fe659f131fc997f5196aad87512f9b1304",
+                "reference": "468dd5fe659f131fc997f5196aad87512f9b1304",
                 "shasum": ""
             },
             "require": {
@@ -1396,7 +1396,7 @@
                 "MIT"
             ],
             "description": "Flexible Stub wrapper for PHPUnit's Mock Builder",
-            "time": "2020-02-07T18:42:28+00:00"
+            "time": "2020-07-03T15:54:43+00:00"
         },
         {
             "name": "composer/semver",
@@ -1900,16 +1900,16 @@
         },
         {
             "name": "phan/phan",
-            "version": "3.0.4",
+            "version": "3.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phan/phan.git",
-                "reference": "ba01d4a56fcb2019d79dc7ce63dc0151d1cc41f7"
+                "reference": "5caa68cc8024e537120d1fe9b835bc8525c660fa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phan/phan/zipball/ba01d4a56fcb2019d79dc7ce63dc0151d1cc41f7",
-                "reference": "ba01d4a56fcb2019d79dc7ce63dc0151d1cc41f7",
+                "url": "https://api.github.com/repos/phan/phan/zipball/5caa68cc8024e537120d1fe9b835bc8525c660fa",
+                "reference": "5caa68cc8024e537120d1fe9b835bc8525c660fa",
                 "shasum": ""
             },
             "require": {
@@ -1969,7 +1969,7 @@
                 "php",
                 "static"
             ],
-            "time": "2020-07-01T18:04:58+00:00"
+            "time": "2020-07-03T23:01:25+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -2853,12 +2853,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "9ec84501a85a3b0c7b260042ae81a8efb2f234ce"
+                "reference": "57353ec1a34527a2dbbd3c0fb9418ffc008c6f60"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/9ec84501a85a3b0c7b260042ae81a8efb2f234ce",
-                "reference": "9ec84501a85a3b0c7b260042ae81a8efb2f234ce",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/57353ec1a34527a2dbbd3c0fb9418ffc008c6f60",
+                "reference": "57353ec1a34527a2dbbd3c0fb9418ffc008c6f60",
                 "shasum": ""
             },
             "conflict": {
@@ -2952,6 +2952,7 @@
                 "magento/product-community-edition": ">=2,<2.2.10|>=2.3,<2.3.2-p.2",
                 "monolog/monolog": ">=1.8,<1.12",
                 "namshi/jose": "<2.2",
+                "nystudio107/craft-seomatic": "<3.3",
                 "nzo/url-encryptor-bundle": ">=4,<4.3.2|>=5,<5.0.1",
                 "october/october": ">=1.0.319,<1.0.467",
                 "onelogin/php-saml": "<2.10.4",
@@ -3130,7 +3131,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-07-02T17:01:23+00:00"
+            "time": "2020-07-03T16:50:03+00:00"
         },
         {
             "name": "sabre/event",
