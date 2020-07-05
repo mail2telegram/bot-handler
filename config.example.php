@@ -5,6 +5,9 @@ use M2T\Model\Email;
 return [
     'logLevel' => 'debug',
     'telegramToken' => 'XXX',
+    'telegramTimeout' => 5.0,
+    'telegramLongPollingTimeout' => 2,
+    'telegramMaxShowAtList' => 7,
     'redis' => [
         'host' => 'm2t_redis',
     ],
