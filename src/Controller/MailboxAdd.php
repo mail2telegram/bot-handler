@@ -9,55 +9,58 @@ use M2T\Client\MailConfigClientInterface;
 use M2T\Client\MessengerInterface;
 use M2T\Model\Account;
 use M2T\Model\Email;
-use Psr\Log\LoggerInterface;
 
-class Register extends Base
+// @todo Обработать "Данный email уже добавлен. Изменить его настройки?" register:emailAlreadyExists
+
+class MailboxAdd
 {
-    protected MailConfigClientInterface $mailConfigClient;
-
     public const MSG_BTN_ACCEPT_AUTOCONFIG = 'Принять автоматические настройки';
-    public const MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG = 'Внести изменения';
+    protected const MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG = 'Внести изменения';
 
-    public const MSG_INSERT_EMAIL = 'Напишите email:';
-    public const MSG_INSERT_PASSWORD = 'Введите пароль от email:';
-    public const MSG_INCORRECT_EMAIL = 'Вы ввели некорректный email. Напишите email:';
-    public const MSG_EMAIL_ALREADY_EXISTS = 'Данный email уже добавлен. Изменить его настройки?';
-    public const MSG_EMAIL_AUTOCONFIG_GET = 'Нам удалось получить настройки автоматически. Вы можете принять их или изменить:';
-    public const MSG_ERROR = 'Произошла ошибка во время регистрации email :-( Попробуйте заново!';
-    public const MSG_CONFIRM_OR_TYPE_NEW = 'Подтвердите значение %value% либо введите свое';
-    public const MSG_REGISTRATION_COMPLETE = 'Спасибо, регистрация email завершена! Сохраненные настройки: ' . PHP_EOL . '%new_values%';
-    public const MSG_YES = 'Да';
-    public const MSG_NO = 'Нет';
+    protected const MSG_INSERT_EMAIL = 'Напишите email:';
+    protected const MSG_INSERT_PASSWORD = 'Введите пароль от email:';
+    protected const MSG_INCORRECT_EMAIL = 'Вы ввели некорректный email. Напишите email:';
+    protected const MSG_EMAIL_ALREADY_EXISTS = 'Данный email уже добавлен. Изменить его настройки?';
+    protected const MSG_EMAIL_AUTOCONFIG_GET = 'Нам удалось получить настройки автоматически. Вы можете принять их или изменить:';
+    protected const MSG_ERROR = 'Произошла ошибка во время регистрации email :-( Попробуйте заново!';
+    protected const MSG_CONFIRM_OR_TYPE_NEW = 'Подтвердите значение %value% либо введите свое';
+    protected const MSG_REGISTRATION_COMPLETE = 'Спасибо, регистрация email завершена! Сохраненные настройки: ' . PHP_EOL . '%new_values%';
+    protected const MSG_YES = 'Да';
+    protected const MSG_NO = 'Нет';
+
+    protected int $chatId;
+    protected MessengerInterface $messenger;
+    protected AccountManager $accountManager;
+    protected MailConfigClientInterface $mailConfigClient;
+    protected Account $account;
 
     public function __construct(
-        LoggerInterface $logger,
+        int $chatId,
         MessengerInterface $messenger,
         AccountManager $accountManager,
         MailConfigClientInterface $mailConfigClient,
         Account $account
     ) {
-        parent::__construct($logger, $messenger, $accountManager, $account);
+        $this->chatId = $chatId;
+        $this->messenger = $messenger;
+        $this->accountManager = $accountManager;
         $this->mailConfigClient = $mailConfigClient;
+        $this->account = $account;
     }
 
-    public function actionIndex(array $update): string
+    public function actionIndex(): string
     {
-        $msg = &$update['message'];
-        $this->logger->debug('$msg: ', $msg);
-
         $this->messenger->sendMessage(
-            $this->account->chatId,
+            $this->chatId,
             static::MSG_INSERT_EMAIL,
             json_encode(['force_reply' => true])
         );
-
         return 'register:emailInserted';
     }
 
     public function actionTakeAutoconfig(array $update): string
     {
         $msg = &$update['message'];
-
         $emailString = trim($msg['text']);
 
         if (!filter_var($emailString, FILTER_VALIDATE_EMAIL)) {
@@ -75,7 +78,7 @@ class Register extends Base
                 static::MSG_EMAIL_ALREADY_EXISTS,
                 json_encode(
                     [
-                        'keyboard' => [[static::MSG_YES], [static::MSG_NO],],
+                        'keyboard' => [[static::MSG_YES], [static::MSG_NO]],
                         'one_time_keyboard' => true,
                     ]
                 )
@@ -117,6 +120,12 @@ class Register extends Base
 
     public function actionSetImapHost(array $update): string
     {
+        if ($update['message']['text'] === static::MSG_BTN_ACCEPT_AUTOCONFIG) {
+            return $this->actionAddPassword();
+        }
+        if ($update['message']['text'] === MailboxEdit::MSG_NO) {
+            return '';
+        }
         return $this->editField($update, 'imapHost');
     }
 

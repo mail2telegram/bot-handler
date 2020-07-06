@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "41cb60868d786a75057b856ed972e123",
+    "content-hash": "5cd043d39cba5ed1edd9afc447b83933",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -197,20 +197,21 @@
         },
         {
             "name": "mail2telegram/common",
-            "version": "dev-temporary",
+            "version": "dev-handler",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mail2telegram/common.git",
-                "reference": "ecce88f6c1c246bfb3f4e6d24a18f74ca80f8dec"
+                "reference": "7c7c659643cc68eb6fb6b63ffeb0c2b015f7d4fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mail2telegram/common/zipball/ecce88f6c1c246bfb3f4e6d24a18f74ca80f8dec",
-                "reference": "ecce88f6c1c246bfb3f4e6d24a18f74ca80f8dec",
+                "url": "https://api.github.com/repos/mail2telegram/common/zipball/7c7c659643cc68eb6fb6b63ffeb0c2b015f7d4fb",
+                "reference": "7c7c659643cc68eb6fb6b63ffeb0c2b015f7d4fb",
                 "shasum": ""
             },
             "require": {
                 "ext-redis": "*",
+                "mqwerty/dependency-injection": "^1.1",
                 "php": "^7.4",
                 "psr/container": "^1.0"
             },
@@ -272,10 +273,10 @@
                 }
             ],
             "support": {
-                "source": "https://github.com/mail2telegram/common/tree/temporary",
+                "source": "https://github.com/mail2telegram/common/tree/handler",
                 "issues": "https://github.com/mail2telegram/common/issues"
             },
-            "time": "2020-07-06T06:58:50+00:00"
+            "time": "2020-07-06T11:25:55+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -367,6 +368,58 @@
                 }
             ],
             "time": "2020-05-22T08:12:19+00:00"
+        },
+        {
+            "name": "mqwerty/dependency-injection",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mqwerty/dependency-injection.git",
+                "reference": "14ee922b63c36cf8772c2b335c93c8eccd184bc9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mqwerty/dependency-injection/zipball/14ee922b63c36cf8772c2b335c93c8eccd184bc9",
+                "reference": "14ee922b63c36cf8772c2b335c93c8eccd184bc9",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4",
+                "psr/container": "^1.0"
+            },
+            "require-dev": {
+                "phan/phan": "^3.0",
+                "phpmd/phpmd": "^2.8",
+                "phpunit/phpunit": "^9.2",
+                "roave/security-advisories": "dev-master",
+                "squizlabs/php_codesniffer": "^3.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mqwerty\\DI\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dmitrii Elkin",
+                    "email": "de@mqwerty.ru"
+                }
+            ],
+            "description": "Simple PSR-11 DI container with autowiring",
+            "keywords": [
+                "PSR-11",
+                "container",
+                "dependency injection",
+                "di",
+                "ioc",
+                "psr11"
+            ],
+            "time": "2020-07-06T11:16:32+00:00"
         },
         {
             "name": "pahanini/monolog-cli-formatter",

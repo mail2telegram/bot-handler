@@ -35,7 +35,7 @@
     "ext-simplexml": "*",
     "ext-zend-opcache": "*",
     "guzzlehttp/guzzle": "^6.5",
-    "mail2telegram/common": "dev-temporary",
+    "mail2telegram/common": "dev-handler",
     "monolog/monolog": "^2.1",
     "pahanini/monolog-cli-formatter": "^1.0",
     "php-amqplib/php-amqplib": "^2.11",

@@ -1,6 +1,9 @@
 <?php
 
-use M2T\App;
+use M2T\Client\MailConfigClient;
+use M2T\Client\MailConfigClientInterface;
+use M2T\Client\MessengerInterface;
+use M2T\Client\TelegramClient;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
@@ -9,7 +12,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use Psr\Log\LoggerInterface;
 
 return [
-    'logLevel' => 'info', /** @see \Psr\Log\LogLevel */
+    'logLevel' => 'info',
     'workerMemoryLimit' => 134_217_728, // 128MB
     'telegramTimeout' => 5.0,
     'telegramMaxShowAtList' => 7,
@@ -19,18 +22,18 @@ return [
     'shared' => [
         LoggerInterface::class,
     ],
-    LoggerInterface::class => static function () {
-        $stream = new StreamHandler(STDERR, App::get('logLevel'));
+    LoggerInterface::class => static function ($c) {
+        $stream = new StreamHandler(STDERR, $c->get('logLevel'));
         $stream->setFormatter(new CliFormatter());
         return (new Logger('app'))->pushHandler($stream);
     },
-    Redis::class => static function () {
+    Redis::class => static function ($c) {
         static $connect;
         if (null === $connect) {
             $connect = new Redis();
         }
         if (!$connect->isConnected()) {
-            $config = App::get('redis');
+            $config = $c->get('redis');
             if (!$connect->pconnect(
                 $config['host'],
                 $config['port'] ?? 6379,
@@ -44,10 +47,10 @@ return [
         }
         return $connect;
     },
-    AMQPStreamConnection::class => static function () {
+    AMQPStreamConnection::class => static function ($c) {
         static $connect;
         if (null === $connect) {
-            $config = App::get('amqp');
+            $config = $c->get('amqp');
             $connect = new AMQPStreamConnection(
                 $config['host'],
                 $config['port'],
@@ -57,7 +60,7 @@ return [
         }
         return $connect;
     },
-    AMQPChannel::class => static function () {
-        return App::get(AMQPStreamConnection::class)->channel();
-    },
+    AMQPChannel::class => fn($c) => $c->get(AMQPStreamConnection::class)->channel(),
+    MessengerInterface::class => fn($c) => $c->get(TelegramClient::class),
+    MailConfigClientInterface::class => fn($c) => $c->get(MailConfigClient::class),
 ];

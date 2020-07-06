@@ -2,39 +2,29 @@
 
 namespace M2T;
 
-use M2T\Client\MessengerInterface;
-use M2T\Client\TelegramClient;
 use M2T\Model\Account;
-use M2T\Controller\Delete;
-use M2T\Controller\Edit;
-use M2T\Controller\Help;
-use M2T\Controller\Register;
-use M2T\Controller\StrategyInterface;
 use Psr\Log\LoggerInterface;
 
 class Handler
 {
-    protected LoggerInterface $logger;
-    protected MessengerInterface $messenger;
-    protected AccountManager $accountManager;
-
     protected const COMMANDS = [
-        'start' => 'Help',
-        'help' => 'Help',
-        'register' => 'Register',
-        'list' => 'List',
-        'edit' => 'Edit',
-        'delete' => 'Delete',
-        'send' => 'Send',
+        '/start' => Controller\Help::class,
+        '/help' => Controller\Help::class,
+        '/register' => Controller\MailboxAdd::class,
+        '/list' => Controller\MailboxList::class,
+        '/edit' => Controller\MailboxEdit::class,
+        '/delete' => Controller\MailboxDelete::class,
+        '/send' => Controller\MailSend::class,
     ];
+
+    protected LoggerInterface $logger;
+    protected AccountManager $accountManager;
 
     public function __construct(
         LoggerInterface $logger,
-        TelegramClient $messenger,
         AccountManager $accountManager
     ) {
         $this->logger = $logger;
-        $this->messenger = $messenger;
         $this->accountManager = $accountManager;
     }
 
@@ -49,97 +39,40 @@ class Handler
             $chatId = &$update['message']['chat']['id'];
             $messageText = &$update['message']['text'];
 
-            $account = $this->accountManager->load($chatId);
-            if (!$account) {
+            $isBotCommand = isset($update['message']['entities'][0]['type'])
+                && $update['message']['entities'][0]['type'] === 'bot_command';
+
+            if (!$account = $this->accountManager->load($chatId)) {
                 $account = new Account($chatId);
             }
 
-            $ctrl = $this->recognizeCommand($account, $messageText);
-            if (!$ctrl) {
-                $ctrl = $account->strategy ?? '';
+            if ($isBotCommand) {
+                $handler = STATIC::COMMANDS[$messageText] ?? Controller\Help::class;
+                $account->strategy = $handler;
+                $account->step = '';
+            } else {
+                $handler = $account->strategy ?? Controller\Help::class;
+                if (!class_exists($handler)) {
+                    $handler = Controller\Help::class;
+                }
             }
-
-            // @todo check
-            if ($ctrl) {
-                $this->accountManager->setAllEmailsNotSelected($account);
-            }
-
-            $this->logger->debug('recognizeCommand ' . $messageText);
-            $this->logger->debug('recognizeProcess ' . $account->strategy);
-            $this->logger->debug('recognizeStep ' . $account->step);
-
-            if ($new = $this->recognizeMessage($account, $messageText)) {
-                $ctrl = $new;
-            }
-
-            $ctrl = $ctrl
-                ? "M2T\\Controller\\{$ctrl}"
-                : Help::class;
 
             $action = 'actionIndex';
-            if ($account->step && method_exists($ctrl, "action{$account->step}")) {
+            if ($account->step && method_exists($handler, "action{$account->step}")) {
                 $action = "action{$account->step}";
             }
 
-            $this->logger->debug("Action: {$ctrl}::{$action}");
-            $this->logger->debug('$account->strategy: ' . $account->strategy);
-            $this->logger->debug('$account->step: ' . $account->step);
-
-            $ctrl = new $ctrl(
-                $this->logger,
-                $this->messenger,
-                $this->accountManager,
-                $account,
-            );
-            $result = $ctrl->$action($update);
+            $result = App::build($handler, ['chatId' => $chatId, 'account' => $account])->$action($update);
             $this->trigger($account, $result);
         }
-    }
-
-    protected function recognizeCommand(Account $account, string $messageText): string
-    {
-        $command = ltrim($messageText, '/');
-        if (!isset(STATIC::COMMANDS[$command])) {
-            return '';
-        }
-        $ctrl = STATIC::COMMANDS[$command];
-        $account->step = null;
-        $account->strategy = $ctrl;
-        return $ctrl;
-    }
-
-    public function recognizeMessage(Account $account, string $messageText): string
-    {
-        if ($account->strategy === 'Register') {
-            if ($account->step === 'SetImapHost' && $messageText === Register::MSG_BTN_ACCEPT_AUTOCONFIG) {
-                $account->step = 'AddPassword';
-            }
-            if ($account->step === 'SetImapHost' && $messageText === Edit::MSG_NO) {
-                $account->step = null;
-                $account->strategy = 'Help';
-                return '';
-            }
-        }
-
-        // @todo Обработать "Данный email уже добавлен. Изменить его настройки?" register:emailAlreadyExists
-        if (
-            $account->strategy === 'Delete'
-            && $account->step === 'Delete'
-            && $messageText === Delete::MSG_BTN_NOT_CONFIRMED
-        ) {
-            $account->step = 'Canceled';
-        }
-
-        return '';
     }
 
     public function trigger(Account $account, ?string $event = null): void
     {
         $this->logger->debug('trigger event: ' . $event);
-
         switch ($event) {
             default:
-                $account->strategy = 'Help';
+                $account->strategy = null;
                 $account->step = null;
                 break;
             case 'register:emailIsNotCorrect':
@@ -148,7 +81,7 @@ class Handler
                 break;
             case 'register:autoconfigDetected':
             case 'edit:runEdit':
-                $account->strategy = 'Register';
+                $account->strategy = Controller\MailboxAdd::class;
                 $account->step = 'SetImapHost';
                 break;
             case 'register:imapHostSuccess':
@@ -194,10 +127,6 @@ class Handler
                 $account->step = 'Send';
                 break;
         }
-
-        $this->logger->debug('$account->strategy: ' . $account->strategy);
-        $this->logger->debug('$account->step: ' . $account->step);
-
         $this->accountManager->save($account);
     }
 }

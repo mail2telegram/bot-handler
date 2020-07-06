@@ -2,18 +2,30 @@
 
 namespace M2T\Controller;
 
-class MailboxList extends Base
-{
-    public const MSG_YOUR_LIST = '<b>Список ваших email:</b>';
-    public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
+use M2T\AccountManager;
+use M2T\Client\MessengerInterface;
 
-    public function actionIndex(): string
+class MailboxList
+{
+    protected const REPLY_MSG_EMPTY_LIST = 'No email addresses';
+
+    protected int $chatId;
+    protected MessengerInterface $messenger;
+    protected AccountManager $accountManager;
+
+    public function __construct(int $chatId, MessengerInterface $messenger, AccountManager $accountManager)
     {
-        $list = array_map(fn($email) => $email->email, $this->account->emails);
-        $msg = count($list)
-            ? static::MSG_YOUR_LIST . PHP_EOL . implode(PHP_EOL, $list)
-            : static::MSG_YOUR_LIST . PHP_EOL . static::MSG_EMPTY_LIST;
-        $this->messenger->sendMessage($this->account->chatId, $msg);
-        return 'list:complete';
+        $this->chatId = $chatId;
+        $this->messenger = $messenger;
+        $this->accountManager = $accountManager;
+    }
+
+    public function actionIndex(): void
+    {
+        $account = $this->accountManager->load($this->chatId);
+        $msg = $account && $account->emails
+            ? implode(PHP_EOL, array_map(fn($email) => $email->email, $account->emails))
+            : static::REPLY_MSG_EMPTY_LIST;
+        $this->messenger->sendMessage($this->chatId, $msg);
     }
 }

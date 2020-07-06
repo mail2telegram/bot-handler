@@ -6,7 +6,7 @@ namespace M2T\Controller;
 
 use M2T\App;
 
-class Delete extends Base
+class MailboxDelete extends Base
 {
     public const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
     public const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
@@ -76,6 +76,10 @@ class Delete extends Base
         $msg = &$update['message'];
         $emailString = $msg['text'];
 
+        if ($emailString === static::MSG_BTN_NOT_CONFIRMED) {
+            return $this->actionCanceled();
+        }
+
         if (!isset($msg['entities'][0]) || $msg['entities'][0]['type'] !== 'email') {
             return $this->sendErrorEmailNotFound();
         }
@@ -97,10 +101,6 @@ class Delete extends Base
 
     public function actionCanceled(): string
     {
-        $this->messenger->sendMessage(
-            $this->account->chatId,
-            static::MSG_DELETE_CANCELED
-        );
         return 'delete:canceled';
     }
 

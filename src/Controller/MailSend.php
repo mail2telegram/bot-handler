@@ -10,7 +10,7 @@ use M2T\Client\SmtpClient;
 use M2T\Model\DraftEmail;
 use Throwable;
 
-class Send extends Base
+class MailSend extends Base
 {
     public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
     public const MSG_CHOOSE_EMAIL = 'Выберите email с которого будем отправлять или введите если не отображен';
