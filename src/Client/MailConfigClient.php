@@ -25,10 +25,8 @@ class MailConfigClient implements MailConfigClientInterface
         );
     }
 
-    public function get(string $email): array
+    public function get(string $domain): array
     {
-        $domain = substr($email, strpos($email, '@') + 1);
-
         try {
             $response = $this->client->request('GET', $domain);
         } catch (ClientException $e) {

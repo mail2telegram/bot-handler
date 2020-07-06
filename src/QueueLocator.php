@@ -18,8 +18,8 @@ class QueueLocator
         $count = App::get('queueAmount');
         $i = 1;
         while ($i <= $count) {
-            if ($this->redis->setnx("q$i", true)) {
-                return "q$i";
+            if ($this->redis->setnx("queue:$i", true)) {
+                return "queue:$i";
             }
             $i++;
         }

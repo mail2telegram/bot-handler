@@ -8,55 +8,59 @@ use M2T\App;
 
 class MailboxDelete extends Base
 {
-    public const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
-    public const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
-    public const MSG_BTN_CONFIRM_DELETE = 'Действительно удалить %email%?';
-    public const MSG_DELETE_CANCELED = 'Отменено!';
-    public const MSG_BTN_CONFIRMED = 'Да, удалить %email%';
-    public const MSG_BTN_NOT_CONFIRMED = 'Нет';
-    public const MSG_DELETE_COMPLETE = 'Удалено';
-    public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
+    protected const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
+    protected const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
+    protected const MSG_BTN_CONFIRM_DELETE = 'Действительно удалить %email%?';
+    protected const MSG_DELETE_CANCELED = 'Отменено!';
+    protected const MSG_BTN_CONFIRMED = 'Да, удалить %email%';
+    protected const MSG_BTN_NOT_CONFIRMED = 'Нет';
+    protected const MSG_DELETE_COMPLETE = 'Удалено';
 
-    public function actionIndex(): string
+    protected const ACTION_CHECK = 'actionCheck';
+    protected const ACTION_DELETE = 'actionDelete';
+
+    public function actionIndex(): void
     {
+        $account = $this->accountManager->load($this->state->chatId);
+        if (!$account || !$account->emails) {
+            $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
+            return;
+        }
+
         $list = [];
-        foreach ($this->account->emails as $key => $email) {
+        foreach ($account->emails as $key => $email) {
             if ($key >= App::get('telegramMaxShowAtList')) {
                 break;
             }
             $list[] = [$email->email];
         }
 
-        if (count($this->account->emails) > 0) {
-            $this->messenger->sendMessage(
-                $this->account->chatId,
-                static::MSG_CHOOSE_EMAIL,
-                json_encode(
-                    [
-                        'keyboard' => $list,
-                        'one_time_keyboard' => true,
-                    ]
-                )
-            );
-            return 'delete:emailChoosed';
-        }
-
-        $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
-        $this->messenger->sendMessage($this->account->chatId, $msg);
-        return 'delete:cancel';
+        $this->messenger->sendMessage(
+            $this->state->chatId,
+            static::MSG_CHOOSE_EMAIL,
+            json_encode(
+                [
+                    'keyboard' => $list,
+                    'one_time_keyboard' => true,
+                ]
+            )
+        );
+        $this->setState(static::ACTION_CHECK);
     }
 
-    public function actionCheckAndConfirm(array $update): string
+    public function actionCheck(array $update): void
     {
         $msg = &$update['message'];
-        $emailString = trim($msg['text']);
+        $emailString = $msg['text'];
+        $account = $this->accountManager->load($this->state->chatId);
 
-        if (!$this->accountManager->checkExistEmail($this->account, $emailString)) {
-            return $this->sendErrorEmailNotFound($emailString);
+        if (!$account || !$account->emails || !$this->accountManager->mailboxExist($account, $emailString)) {
+            $this->sendErrorEmailNotFound($emailString);
+            return;
         }
 
         $this->messenger->sendMessage(
-            $this->account->chatId,
+            $this->state->chatId,
             str_replace('%email%', $emailString, static::MSG_BTN_CONFIRM_DELETE),
             json_encode(
                 [
@@ -68,48 +72,43 @@ class MailboxDelete extends Base
                 ]
             )
         );
-        return 'delete:confirmationRequested';
+        $this->setState(static::ACTION_DELETE);
     }
 
-    public function actionDelete(array $update): string
+    public function actionDelete(array $update): void
     {
         $msg = &$update['message'];
         $emailString = $msg['text'];
 
         if ($emailString === static::MSG_BTN_NOT_CONFIRMED) {
-            return $this->actionCanceled();
+            $this->messenger->sendMessage($this->state->chatId, static::MSG_DELETE_CANCELED);
+            return;
         }
 
-        if (!isset($msg['entities'][0]) || $msg['entities'][0]['type'] !== 'email') {
-            return $this->sendErrorEmailNotFound();
+        $account = $this->accountManager->load($this->state->chatId);
+        if (!$account || !$account->emails || !isset($msg['entities'][0]) || $msg['entities'][0]['type'] !== 'email') {
+            $this->sendErrorEmailNotFound();
+            return;
         }
 
         $emailString = mb_substr($emailString, $msg['entities'][0]['offset'], $msg['entities'][0]['length']);
-
-        $email = $this->accountManager->getEmail($this->account, $emailString);
-        if ($email === null || !$this->accountManager->deleteEmail($this->account, $email->email)) {
-            return $this->sendErrorEmailNotFound($emailString);
+        $email = $this->accountManager->mailboxGet($account, $emailString);
+        if ($email === null || !$this->accountManager->mailboxDelete($account, $email->email)) {
+            $this->sendErrorEmailNotFound($emailString);
+            return;
         }
 
         $this->messenger->sendMessage(
-            $this->account->chatId,
+            $this->state->chatId,
             static::MSG_DELETE_COMPLETE
         );
-
-        return 'delete:complete';
     }
 
-    public function actionCanceled(): string
-    {
-        return 'delete:canceled';
-    }
-
-    protected function sendErrorEmailNotFound($emailString = ''): string
+    protected function sendErrorEmailNotFound($emailString = ''): void
     {
         $this->messenger->sendMessage(
-            $this->account->chatId,
+            $this->state->chatId,
             str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
         );
-        return 'delete:error';
     }
 }

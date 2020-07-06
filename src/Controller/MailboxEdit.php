@@ -8,63 +8,63 @@ use M2T\App;
 
 class MailboxEdit extends Base
 {
-    public const MSG_CHOOSE_EMAIL = 'Выберите email для редактирования, или введите если нет в списке';
-    public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
-    public const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
-    public const MSG_CONFIRM_RUN = 'Вы видите текущие настройки. Отредактировать?';
-    public const MSG_YES = 'Да';
-    public const MSG_YES_RUN_EDIT = 'Да, редактировать';
+    protected const MSG_CHOOSE_EMAIL = 'Выберите email для редактирования, или введите если нет в списке';
+    protected const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
+    protected const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
+    protected const MSG_CONFIRM_RUN = 'Вы видите текущие настройки. Отредактировать?';
+    protected const MSG_YES = 'Да';
+    protected const MSG_YES_RUN_EDIT = 'Да, редактировать';
     public const MSG_NO = 'Нет';
 
-    public function actionIndex(): string
+    protected const ACTION_SHOW_CURRENT_SETTINGS = 'actionShowCurrentSettings';
+
+    public function actionIndex(): void
     {
+        $account = $this->accountManager->load($this->state->chatId);
+        if (!$account || !$account->emails) {
+            $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
+            return;
+        }
+
         $list = [];
-        foreach ($this->account->emails as $key => $email) {
+        foreach ($account->emails as $key => $email) {
             if ($key >= App::get('telegramMaxShowAtList')) {
                 break;
             }
             $list[] = [$email->email];
         }
 
-        if (count($this->account->emails) > 0) {
-            $this->messenger->sendMessage(
-                $this->account->chatId,
-                static::MSG_CHOOSE_EMAIL,
-                json_encode(
-                    [
-                        'keyboard' => $list,
-                        'one_time_keyboard' => true,
-                    ]
-                )
-            );
-            return 'edit:emailChoosed';
-        }
+        $this->messenger->sendMessage(
+            $this->state->chatId,
+            static::MSG_CHOOSE_EMAIL,
+            json_encode(
+                [
+                    'keyboard' => $list,
+                    'one_time_keyboard' => true,
+                ]
+            )
+        );
 
-        $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
-        $this->messenger->sendMessage($this->account->chatId, $msg);
-        return 'edit:cancel';
+        $this->setState(static::ACTION_SHOW_CURRENT_SETTINGS);
     }
 
-    public function actionShowCurrentSettings(array $update): string
+    public function actionShowCurrentSettings(array $update): void
     {
         $msg = &$update['message'];
-        $emailString = trim($msg['text']);
+        $emailString = $msg['text'];
 
-        $email = $this->accountManager->getEmail($this->account, $emailString);
-        if ($email === null) {
+        $account = $this->accountManager->load($this->state->chatId);
+        if (!$account || !$account->emails || !$mailbox = $this->accountManager->mailboxGet($account, $emailString)) {
             $this->messenger->sendMessage(
-                $this->account->chatId,
+                $this->state->chatId,
                 str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
             );
-            // @todo правильно ли это для Edit?
-            return 'delete:error';
+            return;
         }
 
-        $email->selected = true;
-
         $this->messenger->sendMessage(
-            $this->account->chatId,
-            static::MSG_CONFIRM_RUN . PHP_EOL . $email->getSettings(),
+            $this->state->chatId,
+            static::MSG_CONFIRM_RUN . PHP_EOL . $mailbox->getSettings(),
             json_encode(
                 [
                     'keyboard' => [[static::MSG_YES_RUN_EDIT], [static::MSG_NO],],
@@ -72,6 +72,8 @@ class MailboxEdit extends Base
                 ]
             )
         );
-        return 'edit:runEdit';
+
+        $this->state->mailbox = $mailbox;
+        $this->setState(MailboxAdd::ACTION_REQUEST_IMAP_HOST, MailboxAdd::class);
     }
 }

@@ -4,25 +4,32 @@ namespace M2T\Controller;
 
 use M2T\AccountManager;
 use M2T\Client\MessengerInterface;
-use M2T\Model\Account;
-use Psr\Log\LoggerInterface;
+use M2T\State;
 
 abstract class Base
 {
-    protected LoggerInterface $logger;
+    protected const MSG_EMPTY_LIST = 'No email addresses';
+
+    protected State $state;
     protected MessengerInterface $messenger;
     protected AccountManager $accountManager;
-    protected Account $account;
 
     public function __construct(
-        LoggerInterface $logger,
+        State $state,
         MessengerInterface $messenger,
-        AccountManager $accountManager,
-        Account $account
+        AccountManager $accountManager
     ) {
-        $this->logger = $logger;
+        $this->state = $state;
         $this->messenger = $messenger;
         $this->accountManager = $accountManager;
-        $this->account = $account;
+    }
+
+    public function setState(string $action, string $handler = ''): void
+    {
+        if (!$handler) {
+            $handler = static::class;
+        }
+        $this->state->set($handler, $action);
+        $this->state->changed = true;
     }
 }
