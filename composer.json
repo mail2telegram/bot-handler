@@ -26,20 +26,20 @@
   },
   "require": {
     "php": "^7.4",
+    "ext-imap": "*",
     "ext-json": "*",
+    "ext-libxml": "*",
     "ext-mbstring": "*",
     "ext-pcntl": "*",
     "ext-redis": "*",
+    "ext-simplexml": "*",
     "ext-zend-opcache": "*",
     "guzzlehttp/guzzle": "^6.5",
-    "mail2telegram/common": "^1.0",
+    "mail2telegram/common": "dev-temporary",
     "monolog/monolog": "^2.1",
     "pahanini/monolog-cli-formatter": "^1.0",
     "php-amqplib/php-amqplib": "^2.11",
-    "phpmailer/phpmailer": "^6.1",
-    "ext-simplexml": "*",
-    "ext-libxml": "*",
-    "ext-imap": "*"
+    "phpmailer/phpmailer": "^6.1"
   },
   "require-dev": {
     "codeception/codeception": "^4.1",

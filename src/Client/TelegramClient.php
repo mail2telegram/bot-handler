@@ -2,8 +2,9 @@
 
 namespace M2T\Client;
 
-use M2T\App;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use M2T\App;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -62,20 +63,21 @@ class TelegramClient implements MessengerInterface
 
     public function sendMessage(int $chatId, string $text, string $replyMarkup = ''): bool
     {
+        /** @noinspection JsonEncodingApiUsageInspection */
         $data = [
             'form_params' => [
                 'chat_id' => $chatId,
                 'text' => $text,
                 'parse_mode' => 'html',
                 'disable_web_page_preview' => true,
-                'reply_markup' => json_encode(['remove_keyboard' => true])
+                'reply_markup' => json_encode(['remove_keyboard' => true]),
             ],
         ];
         if ($replyMarkup) {
             $data['form_params']['reply_markup'] = $replyMarkup;
         }
         $result = $this->execute('sendMessage', $data);
-        return (bool)$result;
+        return (bool) $result;
     }
 
     public function deleteMessage(int $chatId, int $messageId): bool
@@ -87,6 +89,6 @@ class TelegramClient implements MessengerInterface
             ],
         ];
         $result = $this->execute('deleteMessage', $data);
-        return (bool)$result;
+        return (bool) $result;
     }
 }

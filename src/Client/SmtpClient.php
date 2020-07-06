@@ -20,7 +20,7 @@ class SmtpClient
     }
 
     /**
-     * @param Email $account
+     * @param Email  $account
      * @param string $to
      * @param string $subject
      * @param string $text

@@ -2,7 +2,6 @@
 
 namespace M2T;
 
-
 use M2T\Client\MessengerInterface;
 use M2T\Client\TelegramClient;
 use M2T\Model\Account;
@@ -151,7 +150,6 @@ class Handler
                 $this->account->strategy = 'Help';
                 $this->account->step = null;
                 break;
-
             case 'register:emailIsNotCorrect':
             case 'register:emailInserted':
                 $this->account->step = 'TakeAutoconfig';

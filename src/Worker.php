@@ -20,19 +20,16 @@ final class Worker
         AMQPChannel $channel,
         QueueLocator $locator,
         Handler $handler
-    )
-    {
+    ) {
         $this->logger = $logger;
         $this->channel = $channel;
         $this->locator = $locator;
         $this->handler = $handler;
-
         $this->memoryLimit = App::get('workerMemoryLimit');
 
         $this->logger->info('Worker started');
         pcntl_signal(SIGTERM, [$this, 'signalHandler']);
         pcntl_signal(SIGINT, [$this, 'signalHandler']);
-
     }
 
     public function signalHandler($signo): void
@@ -82,7 +79,7 @@ final class Worker
             //$this->logger->debug('Update:', $update);
             $this->handler->handle($update);
         } catch (Throwable $e) {
-            $this->logger->error((string)$e);
+            $this->logger->error((string) $e);
         }
     }
 }

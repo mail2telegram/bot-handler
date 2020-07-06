@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bce1b0c1fdf44fd76fba8811d79f14f5",
+    "content-hash": "41cb60868d786a75057b856ed972e123",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -197,16 +197,16 @@
         },
         {
             "name": "mail2telegram/common",
-            "version": "v1.0.10",
+            "version": "dev-temporary",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mail2telegram/common.git",
-                "reference": "149104fe356515d1bd638308f28d2d507fa10050"
+                "reference": "07e66c296f8999c5b8558baa2dc0cd72236ef4f7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mail2telegram/common/zipball/149104fe356515d1bd638308f28d2d507fa10050",
-                "reference": "149104fe356515d1bd638308f28d2d507fa10050",
+                "url": "https://api.github.com/repos/mail2telegram/common/zipball/07e66c296f8999c5b8558baa2dc0cd72236ef4f7",
+                "reference": "07e66c296f8999c5b8558baa2dc0cd72236ef4f7",
                 "shasum": ""
             },
             "require": {
@@ -272,10 +272,10 @@
                 }
             ],
             "support": {
-                "source": "https://github.com/mail2telegram/common/tree/v1.0.10",
+                "source": "https://github.com/mail2telegram/common/tree/temporary",
                 "issues": "https://github.com/mail2telegram/common/issues"
             },
-            "time": "2020-07-04T07:00:54+00:00"
+            "time": "2020-07-05T10:29:15+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -5372,20 +5372,21 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "mail2telegram/common": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": "^7.4",
+        "ext-imap": "*",
         "ext-json": "*",
+        "ext-libxml": "*",
         "ext-mbstring": "*",
         "ext-pcntl": "*",
         "ext-redis": "*",
-        "ext-zend-opcache": "*",
         "ext-simplexml": "*",
-        "ext-libxml": "*",
-        "ext-imap": "*"
+        "ext-zend-opcache": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "1.1.0"
