@@ -1,13 +1,13 @@
 <?php
 
-namespace M2T\Strategy;
+namespace M2T\Controller;
 
-class HelpStrategy extends BaseStrategy
+class Help extends Base
 {
-    protected function actionIndex(): string
+    public function actionIndex(): string
     {
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             '<b>Добрый день!</b>' . PHP_EOL .
             'Вы можете:' . PHP_EOL .
             '/register Зарегистрировать email' . PHP_EOL .

@@ -1,10 +1,12 @@
 <?php
 
-namespace M2T\Strategy;
+/** @noinspection JsonEncodingApiUsageInspection */
+
+namespace M2T\Controller;
 
 use M2T\App;
 
-class DeleteStrategy extends BaseStrategy
+class Delete extends Base
 {
     public const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
     public const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
@@ -15,7 +17,7 @@ class DeleteStrategy extends BaseStrategy
     public const MSG_DELETE_COMPLETE = 'Удалено';
     public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
 
-    protected function actionIndex(): string
+    public function actionIndex(): string
     {
         $list = [];
         foreach ($this->account->emails as $key => $email) {
@@ -27,7 +29,7 @@ class DeleteStrategy extends BaseStrategy
 
         if (count($this->account->emails) > 0) {
             $this->messenger->sendMessage(
-                $this->chatId,
+                $this->account->chatId,
                 static::MSG_CHOOSE_EMAIL,
                 json_encode(
                     [
@@ -37,16 +39,16 @@ class DeleteStrategy extends BaseStrategy
                 )
             );
             return 'delete:emailChoosed';
-        } else {
-            $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
-            $this->messenger->sendMessage($this->chatId, $msg);
-            return 'delete:cancel';
         }
+
+        $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
+        $this->messenger->sendMessage($this->account->chatId, $msg);
+        return 'delete:cancel';
     }
 
-    protected function actionCheckAndConfirm(): string
+    public function actionCheckAndConfirm(array $update): string
     {
-        $msg = &$this->incomingData['message'];
+        $msg = &$update['message'];
         $emailString = trim($msg['text']);
 
         if (!$this->accountManager->checkExistEmail($this->account, $emailString)) {
@@ -54,7 +56,7 @@ class DeleteStrategy extends BaseStrategy
         }
 
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             str_replace('%email%', $emailString, static::MSG_BTN_CONFIRM_DELETE),
             json_encode(
                 [
@@ -69,43 +71,43 @@ class DeleteStrategy extends BaseStrategy
         return 'delete:confirmationRequested';
     }
 
-    protected function actionDelete(): string
+    public function actionDelete(array $update): string
     {
-        $msg = &$this->incomingData['message'];
+        $msg = &$update['message'];
         $emailString = $msg['text'];
 
-        if (!isset($msg['entities'][0]) || $msg['entities'][0]['type'] != 'email') {
+        if (!isset($msg['entities'][0]) || $msg['entities'][0]['type'] !== 'email') {
             return $this->sendErrorEmailNotFound();
         }
 
         $emailString = mb_substr($emailString, $msg['entities'][0]['offset'], $msg['entities'][0]['length']);
 
         $email = $this->accountManager->getEmail($this->account, $emailString);
-        if ($email == null || !$this->accountManager->deleteEmail($this->account, $email->email)) {
+        if ($email === null || !$this->accountManager->deleteEmail($this->account, $email->email)) {
             return $this->sendErrorEmailNotFound($emailString);
         }
 
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             static::MSG_DELETE_COMPLETE
         );
 
         return 'delete:complete';
     }
 
-    protected function actionCanceled(): string
+    public function actionCanceled(): string
     {
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             static::MSG_DELETE_CANCELED
         );
         return 'delete:canceled';
     }
 
-    public function sendErrorEmailNotFound($emailString = ''): string
+    protected function sendErrorEmailNotFound($emailString = ''): string
     {
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
         );
         return 'delete:error';

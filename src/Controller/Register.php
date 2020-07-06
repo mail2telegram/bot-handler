@@ -1,17 +1,17 @@
 <?php
 
-namespace M2T\Strategy;
+/** @noinspection JsonEncodingApiUsageInspection */
+
+namespace M2T\Controller;
 
 use M2T\AccountManager;
-use M2T\Client\MailConfigClient;
 use M2T\Client\MailConfigClientInterface;
 use M2T\Client\MessengerInterface;
-use M2T\Handler;
 use M2T\Model\Account;
 use M2T\Model\Email;
 use Psr\Log\LoggerInterface;
 
-class RegisterStrategy extends BaseStrategy
+class Register extends Base
 {
     protected MailConfigClientInterface $mailConfigClient;
 
@@ -30,25 +30,23 @@ class RegisterStrategy extends BaseStrategy
     public const MSG_NO = 'Нет';
 
     public function __construct(
-        array $incomingData,
         LoggerInterface $logger,
         MessengerInterface $messenger,
-        Account $account,
         AccountManager $accountManager,
-        Handler $handler
+        MailConfigClientInterface $mailConfigClient,
+        Account $account
     ) {
-        parent::__construct($incomingData, $logger, $messenger, $account, $accountManager, $handler);
-        $this->mailConfigClient = new MailConfigClient($this->logger);
+        parent::__construct($logger, $messenger, $accountManager, $account);
+        $this->mailConfigClient = $mailConfigClient;
     }
 
-    protected function actionIndex(): string
+    public function actionIndex(array $update): string
     {
-        $msg = &$this->incomingData['message'];
-
-        $this->logger->debug('$msg: ' . print_r($msg, true));
+        $msg = &$update['message'];
+        $this->logger->debug('$msg: ', $msg);
 
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             static::MSG_INSERT_EMAIL,
             json_encode(['force_reply' => true])
         );
@@ -56,15 +54,15 @@ class RegisterStrategy extends BaseStrategy
         return 'register:emailInserted';
     }
 
-    protected function actionTakeAutoconfig(): string
+    public function actionTakeAutoconfig(array $update): string
     {
-        $msg = &$this->incomingData['message'];
+        $msg = &$update['message'];
 
         $emailString = trim($msg['text']);
 
         if (!filter_var($emailString, FILTER_VALIDATE_EMAIL)) {
             $this->messenger->sendMessage(
-                $this->chatId,
+                $this->account->chatId,
                 static::MSG_INCORRECT_EMAIL,
                 json_encode(['force_reply' => true])
             );
@@ -73,7 +71,7 @@ class RegisterStrategy extends BaseStrategy
 
         if ($this->accountManager->checkExistEmail($this->account, $emailString)) {
             $this->messenger->sendMessage(
-                $this->chatId,
+                $this->account->chatId,
                 static::MSG_EMAIL_ALREADY_EXISTS,
                 json_encode(
                     [
@@ -102,7 +100,7 @@ class RegisterStrategy extends BaseStrategy
         $this->account->emails[] = $email;
 
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             $response_msg . PHP_EOL . $email->getSettings(),
             json_encode(
                 [
@@ -117,43 +115,43 @@ class RegisterStrategy extends BaseStrategy
         return 'register:autoconfigDetected';
     }
 
-    protected function actionSetImapHost(): string
+    public function actionSetImapHost(array $update): string
     {
-        return $this->editField('imapHost');
+        return $this->editField($update, 'imapHost');
     }
 
-    protected function actionSetImapPort(): string
+    public function actionSetImapPort(array $update): string
     {
-        return $this->editField('imapPort', 'imapHost');
+        return $this->editField($update, 'imapPort', 'imapHost');
     }
 
-    protected function actionSetImapSocketType(): string
+    public function actionSetImapSocketType(array $update): string
     {
-        return $this->editField('imapSocketType', 'imapPort');
+        return $this->editField($update, 'imapSocketType', 'imapPort');
     }
 
-    protected function actionSetSmtpHost(): string
+    public function actionSetSmtpHost(array $update): string
     {
-        return $this->editField('smtpHost', 'imapSocketType');
+        return $this->editField($update, 'smtpHost', 'imapSocketType');
     }
 
-    protected function actionSetSmtpPort(): string
+    public function actionSetSmtpPort(array $update): string
     {
-        return $this->editField('smtpPort', 'smtpHost');
+        return $this->editField($update, 'smtpPort', 'smtpHost');
     }
 
-    protected function actionSetSmtpSocketType(): string
+    public function actionSetSmtpSocketType(array $update): string
     {
-        return $this->editField('smtpSocketType', 'smtpPort');
+        return $this->editField($update, 'smtpSocketType', 'smtpPort');
     }
 
-    protected function actionSmtpSocketInserted(): string
+    public function actionSmtpSocketInserted(): string
     {
         $this->editField(null, 'smtpSocketType');
         return $this->showPasswordDialog();
     }
 
-    protected function actionAddPassword(): string
+    public function actionAddPassword(): string
     {
         return $this->showPasswordDialog();
     }
@@ -161,24 +159,24 @@ class RegisterStrategy extends BaseStrategy
     protected function showPasswordDialog(): string
     {
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             static::MSG_INSERT_PASSWORD,
             json_encode(['force_reply' => true])
         );
         return 'register:passwordAdded';
     }
 
-    protected function actionRegisterComplete(): string
+    public function actionRegisterComplete(array $update): string
     {
-        $msg = &$this->incomingData['message'];
+        $msg = &$update['message'];
 
         $password = $msg['text'];
 
         $email = $this->accountManager->getSelectedEmail($this->account);
 
-        if ($email == null) {
+        if ($email === null) {
             $this->messenger->sendMessage(
-                $this->chatId,
+                $this->account->chatId,
                 static::MSG_ERROR
             );
             return 'register:selectedNotFound';
@@ -187,10 +185,10 @@ class RegisterStrategy extends BaseStrategy
         $email->pwd = $password;
         $email->selected = false;
 
-        $this->messenger->deleteMessage($this->chatId, $msg['message_id']);
+        $this->messenger->deleteMessage($this->account->chatId, $msg['message_id']);
 
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             str_replace('%new_values%', $email->getSettings(), static::MSG_REGISTRATION_COMPLETE)
         );
         return 'register:complete';
@@ -198,34 +196,35 @@ class RegisterStrategy extends BaseStrategy
 
     /**
      * Редактирует указанное поле и отправляет сообщение с просьбой ввести значение для следующего поля
+     * @param array       $update
      * @param null|string $field Поле, значение которого попросить указать
      * @param null|string $updateField Поле, которое требуется обновить
      * @return string
      */
-    protected function editField(?string $field, ?string $updateField = null): string
+    protected function editField(array $update, ?string $field, ?string $updateField = null): string
     {
-        $msg = &$this->incomingData['message']['text'];
+        $msg = &$update['message']['text'];
 
         $email = $this->accountManager->getSelectedEmail($this->account);
         $fields = [null, 'imapHost', 'imapPort', 'imapSocketType', 'smtpHost', 'smtpPort', 'smtpSocketType'];
-        if ($email == null || !in_array($field, $fields)) {
+        if ($email === null || !in_array($field, $fields, true)) {
             $this->messenger->sendMessage(
-                $this->chatId,
+                $this->account->chatId,
                 static::MSG_ERROR
             );
             return 'register:selectedNotFound';
         }
 
-        if ($updateField != null) {
+        if ($updateField !== null) {
             $email->$updateField = $msg;
         }
 
-        if ($field != null) {
+        if ($field !== null) {
             $msg = '<b>' . $email->email . ': ' . $field . '</b>' . PHP_EOL;
-            $msg .= str_replace('%value%', '<b>' . (string) $email->$field . '</b>', static::MSG_CONFIRM_OR_TYPE_NEW);
+            $msg .= str_replace('%value%', '<b>' . $email->$field . '</b>', static::MSG_CONFIRM_OR_TYPE_NEW);
 
             $this->messenger->sendMessage(
-                $this->chatId,
+                $this->account->chatId,
                 $msg,
                 json_encode(
                     [

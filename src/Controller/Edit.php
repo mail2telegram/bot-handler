@@ -1,10 +1,12 @@
 <?php
 
-namespace M2T\Strategy;
+/** @noinspection JsonEncodingApiUsageInspection */
+
+namespace M2T\Controller;
 
 use M2T\App;
 
-class EditStrategy extends BaseStrategy
+class Edit extends Base
 {
     public const MSG_CHOOSE_EMAIL = 'Выберите email для редактирования, или введите если нет в списке';
     public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
@@ -14,7 +16,7 @@ class EditStrategy extends BaseStrategy
     public const MSG_YES_RUN_EDIT = 'Да, редактировать';
     public const MSG_NO = 'Нет';
 
-    protected function actionIndex(): string
+    public function actionIndex(): string
     {
         $list = [];
         foreach ($this->account->emails as $key => $email) {
@@ -26,7 +28,7 @@ class EditStrategy extends BaseStrategy
 
         if (count($this->account->emails) > 0) {
             $this->messenger->sendMessage(
-                $this->chatId,
+                $this->account->chatId,
                 static::MSG_CHOOSE_EMAIL,
                 json_encode(
                     [
@@ -36,27 +38,32 @@ class EditStrategy extends BaseStrategy
                 )
             );
             return 'edit:emailChoosed';
-        } else {
-            $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
-            $this->messenger->sendMessage($this->chatId, $msg);
-            return 'edit:cancel';
         }
+
+        $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
+        $this->messenger->sendMessage($this->account->chatId, $msg);
+        return 'edit:cancel';
     }
 
-    protected function actionShowCurrentSettings(): string
+    public function actionShowCurrentSettings(array $update): string
     {
-        $msg = &$this->incomingData['message'];
+        $msg = &$update['message'];
         $emailString = trim($msg['text']);
 
         $email = $this->accountManager->getEmail($this->account, $emailString);
-        if ($email == null) {
-            return $this->sendErrorEmailNotFound($emailString);
+        if ($email === null) {
+            $this->messenger->sendMessage(
+                $this->account->chatId,
+                str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
+            );
+            // @todo правильно ли это для Edit?
+            return 'delete:error';
         }
 
         $email->selected = true;
 
         $this->messenger->sendMessage(
-            $this->chatId,
+            $this->account->chatId,
             static::MSG_CONFIRM_RUN . PHP_EOL . $email->getSettings(),
             json_encode(
                 [
@@ -66,14 +73,5 @@ class EditStrategy extends BaseStrategy
             )
         );
         return 'edit:runEdit';
-    }
-
-    public function sendErrorEmailNotFound($emailString = ''): string
-    {
-        $this->messenger->sendMessage(
-            $this->chatId,
-            str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
-        );
-        return 'delete:error';
     }
 }

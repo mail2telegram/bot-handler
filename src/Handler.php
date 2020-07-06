@@ -5,41 +5,36 @@ namespace M2T;
 use M2T\Client\MessengerInterface;
 use M2T\Client\TelegramClient;
 use M2T\Model\Account;
-use M2T\Strategy\DeleteStrategy;
-use M2T\Strategy\EditStrategy;
-use M2T\Strategy\RegisterStrategy;
-use M2T\Strategy\StrategyInterface;
+use M2T\Controller\Delete;
+use M2T\Controller\Edit;
+use M2T\Controller\Help;
+use M2T\Controller\Register;
+use M2T\Controller\StrategyInterface;
 use Psr\Log\LoggerInterface;
-use Throwable;
-use Redis;
 
-/**
- * @property array $strategies Массив доступных процессов, где ключ- название класса (процесса), а значение- массив доступных
- * команд, которыми данный процесс можно вызвать
- *
- * */
 class Handler
 {
     protected LoggerInterface $logger;
     protected MessengerInterface $messenger;
     protected AccountManager $accountManager;
-    protected Account $account;
-    protected Redis $redis;
 
-    private static array $strategies = [
-        'Help' => ['start', 'help'],
-        'Register',
-        'List',
-        'Edit',
-        'Delete',
-        'Send',
+    protected const COMMANDS = [
+        'start' => 'Help',
+        'help' => 'Help',
+        'register' => 'Register',
+        'list' => 'List',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'send' => 'Send',
     ];
 
-    public function __construct(LoggerInterface $logger, TelegramClient $messenger, Redis $redis, AccountManager $accountManager)
-    {
+    public function __construct(
+        LoggerInterface $logger,
+        TelegramClient $messenger,
+        AccountManager $accountManager
+    ) {
         $this->logger = $logger;
         $this->messenger = $messenger;
-        $this->redis = $redis;
         $this->accountManager = $accountManager;
     }
 
@@ -50,162 +45,159 @@ class Handler
      */
     public function handle(array $update): void
     {
-        // @todo handle updates here
-
         if (isset($update['message'])) {
             $chatId = &$update['message']['chat']['id'];
-            $this->account = $this->accountManager->get($chatId);
+            $messageText = &$update['message']['text'];
 
-            $strategyClass = $this->recognizeBaseCommand($update);
-
-            if($strategyClass != null){
-                $this->accountManager->setAllEmailsNotSelected($this->account);
+            $account = $this->accountManager->load($chatId);
+            if (!$account) {
+                $account = new Account($chatId);
             }
 
-            if ($strategyClass == null && $this->account->strategy != null) {
-                $strategyClass = "M2T\\Strategy\\" . $this->account->strategy . "Strategy";
-            }elseif ($strategyClass == null){
-                $strategyClass = "M2T\\Strategy\\HelpStrategy";
+            $ctrl = $this->recognizeCommand($account, $messageText);
+            if (!$ctrl) {
+                $ctrl = $account->strategy ?? '';
             }
 
-            $strategyNewClass = $this->recognizeCommand($update);
-            if ($strategyNewClass != null) {
-                $strategyClass = $strategyNewClass;
+            // @todo check
+            if ($ctrl) {
+                $this->accountManager->setAllEmailsNotSelected($account);
             }
 
+            $this->logger->debug('recognizeCommand ' . $messageText);
+            $this->logger->debug('recognizeProcess ' . $account->strategy);
+            $this->logger->debug('recognizeStep ' . $account->step);
 
-            $this->logger->debug('$update: ' . print_r($update, true));
-            $this->logger->debug('$strategyClass: ' . $strategyClass);
-            $this->logger->debug('$this->account->strategy: ' . $this->account->strategy);
-            $this->logger->debug('$this->account->step: ' . $this->account->step);
+            if ($new = $this->recognizeMessage($account, $messageText)) {
+                $ctrl = $new;
+            }
 
-            $strategy = new $strategyClass($update, $this->logger, $this->messenger, $this->account, $this->accountManager, $this);
-            $strategy->run($this->account->step);
+            $ctrl = $ctrl
+                ? "M2T\\Controller\\{$ctrl}"
+                : Help::class;
 
+            $action = 'actionIndex';
+            if ($account->step && method_exists($ctrl, "action{$account->step}")) {
+                $action = "action{$account->step}";
+            }
 
+            $this->logger->debug("Action: {$ctrl}::{$action}");
+            $this->logger->debug('$account->strategy: ' . $account->strategy);
+            $this->logger->debug('$account->step: ' . $account->step);
+
+            $ctrl = new $ctrl(
+                $this->logger,
+                $this->messenger,
+                $this->accountManager,
+                $account,
+            );
+            $result = $ctrl->$action($update);
+            $this->trigger($account, $result);
         }
     }
 
-    protected function recognizeBaseCommand($update): ?string
+    protected function recognizeCommand(Account $account, string $messageText): string
     {
-        $messageText = &$update['message']['text'];
-
-        $command = str_replace('/', '', $messageText);
-        foreach (static::$strategies as $strategyTitle => $selector) {
-            if (is_string($selector) && mb_strtolower($selector) == $command) {
-                $baseCommandClassName = $selector;
-                break;
-            } elseif (is_array($selector)) {
-                foreach ($selector as $item) {
-                    if (mb_strtolower($item) == $command) {
-                        $baseCommandClassName = $strategyTitle;
-                        break;
-                    }
-                }
-            }
+        $command = ltrim($messageText, '/');
+        if (!isset(STATIC::COMMANDS[$command])) {
+            return '';
         }
-        if (isset($baseCommandClassName)) {
-            $this->account->step = null;
-            $this->account->strategy = $baseCommandClassName;
-            return "M2T\\Strategy\\" . $baseCommandClassName . "Strategy";
-        }
-        return null;
+        $ctrl = STATIC::COMMANDS[$command];
+        $account->step = null;
+        $account->strategy = $ctrl;
+        return $ctrl;
     }
 
-    public function recognizeCommand($update): ?string
+    public function recognizeMessage(Account $account, string $messageText): string
     {
-        $messageText = &$update['message']['text'];
-
-        $this->logger->debug('recognizeCommand ' . $messageText);
-        $this->logger->debug('recognizeProcess ' . $this->account->strategy);
-        $this->logger->debug('recognizeStep ' . $this->account->step);
-
-        if ($this->account->strategy == 'Register') {
-            if ($this->account->step == 'SetImapHost' && $messageText == RegisterStrategy::MSG_BTN_ACCEPT_AUTOCONFIG) {
-                $this->account->step = 'AddPassword';
+        if ($account->strategy === 'Register') {
+            if ($account->step === 'SetImapHost' && $messageText === Register::MSG_BTN_ACCEPT_AUTOCONFIG) {
+                $account->step = 'AddPassword';
             }
-
-            if ($this->account->step == 'SetImapHost' && $messageText == EditStrategy::MSG_NO) {
-                $this->account->step = null;
-                $this->account->strategy = 'Help';
-                return "M2T\\Strategy\\HelpStrategy";
+            if ($account->step === 'SetImapHost' && $messageText === Edit::MSG_NO) {
+                $account->step = null;
+                $account->strategy = 'Help';
+                return '';
             }
         }
 
-        //@todo Обработать "Данный email уже добавлен. Изменить его настройки?" register:emailAlreadyExists
-
-        if ($this->account->strategy == 'Delete' && $this->account->step == 'Delete' && $messageText == DeleteStrategy::MSG_BTN_NOT_CONFIRMED) {
-            $this->account->step = 'Canceled';
+        // @todo Обработать "Данный email уже добавлен. Изменить его настройки?" register:emailAlreadyExists
+        if (
+            $account->strategy === 'Delete'
+            && $account->step === 'Delete'
+            && $messageText === Delete::MSG_BTN_NOT_CONFIRMED
+        ) {
+            $account->step = 'Canceled';
         }
 
-        return null;
+        return '';
     }
 
-    public function trigger(StrategyInterface $strategy, ?string $event = null)
+    public function trigger(Account $account, ?string $event = null): void
     {
         $this->logger->debug('trigger event: ' . $event);
 
         switch ($event) {
             default:
-                $this->account->strategy = 'Help';
-                $this->account->step = null;
+                $account->strategy = 'Help';
+                $account->step = null;
                 break;
             case 'register:emailIsNotCorrect':
             case 'register:emailInserted':
-                $this->account->step = 'TakeAutoconfig';
+                $account->step = 'TakeAutoconfig';
                 break;
             case 'register:autoconfigDetected':
             case 'edit:runEdit':
-                $this->account->strategy = 'Register';
-                $this->account->step = 'SetImapHost';
+                $account->strategy = 'Register';
+                $account->step = 'SetImapHost';
                 break;
             case 'register:imapHostSuccess':
-                $this->account->step = 'SetImapPort';
+                $account->step = 'SetImapPort';
                 break;
             case 'register:imapPortSuccess':
-                $this->account->step = 'SetImapSocketType';
+                $account->step = 'SetImapSocketType';
                 break;
             case 'register:imapSocketTypeSuccess':
-                $this->account->step = 'SetSmtpHost';
+                $account->step = 'SetSmtpHost';
                 break;
             case 'register:smtpHostSuccess':
-                $this->account->step = 'SetSmtpPort';
+                $account->step = 'SetSmtpPort';
                 break;
             case 'register:smtpPortSuccess':
-                $this->account->step = 'SetSmtpSocketType';
+                $account->step = 'SetSmtpSocketType';
                 break;
             case 'register:smtpSocketTypeSuccess':
-                $this->account->step = 'SmtpSocketInserted';
+                $account->step = 'SmtpSocketInserted';
                 break;
             case 'register:passwordAdded':
-                $this->account->step = 'RegisterComplete';
+                $account->step = 'RegisterComplete';
                 break;
             case 'delete:emailChoosed':
-                $this->account->step = 'CheckAndConfirm';
+                $account->step = 'CheckAndConfirm';
                 break;
             case 'delete:confirmationRequested':
-                $this->account->step = 'Delete';
+                $account->step = 'Delete';
                 break;
             case 'edit:emailChoosed':
-                $this->account->step = 'ShowCurrentSettings';
+                $account->step = 'ShowCurrentSettings';
                 break;
             case 'send:emailChoosed':
-                $this->account->step = 'InsertTitle';
+                $account->step = 'InsertTitle';
                 break;
             case 'send:titleInserted':
-                $this->account->step = 'InsertTo';
+                $account->step = 'InsertTo';
                 break;
             case 'send:toInserted':
-                $this->account->step = 'InsertMessage';
+                $account->step = 'InsertMessage';
                 break;
             case 'send:messageInserted':
-                $this->account->step = 'Send';
+                $account->step = 'Send';
                 break;
         }
 
-        $this->logger->debug('$this->account->strategy: ' . $this->account->strategy);
-        $this->logger->debug('$this->account->step: ' . $this->account->step);
+        $this->logger->debug('$account->strategy: ' . $account->strategy);
+        $this->logger->debug('$account->step: ' . $account->step);
 
-        $this->accountManager->save($this->account);
+        $this->accountManager->save($account);
     }
 }

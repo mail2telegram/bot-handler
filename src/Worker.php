@@ -76,7 +76,7 @@ final class Worker
     {
         try {
             $update = json_decode($msg->body, true, 512, JSON_THROW_ON_ERROR);
-            //$this->logger->debug('Update:', $update);
+            $this->logger->debug('Update:', $update);
             $this->handler->handle($update);
         } catch (Throwable $e) {
             $this->logger->error((string) $e);
