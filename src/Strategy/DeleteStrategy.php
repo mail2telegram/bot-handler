@@ -1,11 +1,10 @@
 <?php
 
-
 namespace M2T\Strategy;
 
 use M2T\App;
 
-class DeleteStrategy extends BaseStrategy implements StrategyInterface
+class DeleteStrategy extends BaseStrategy
 {
     public const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
     public const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
@@ -20,16 +19,22 @@ class DeleteStrategy extends BaseStrategy implements StrategyInterface
     {
         $list = [];
         foreach ($this->account->emails as $key => $email) {
-            if ($key >= App::get('telegramMaxShowAtList')) break;
+            if ($key >= App::get('telegramMaxShowAtList')) {
+                break;
+            }
             $list[] = [$email->email];
         }
 
         if (count($this->account->emails) > 0) {
-            $this->messenger->sendMessage($this->chatId,
+            $this->messenger->sendMessage(
+                $this->chatId,
                 static::MSG_CHOOSE_EMAIL,
-                json_encode(['keyboard' => $list,
-                    'one_time_keyboard' => true
-                ])
+                json_encode(
+                    [
+                        'keyboard' => $list,
+                        'one_time_keyboard' => true,
+                    ]
+                )
             );
             return 'delete:emailChoosed';
         } else {
@@ -39,24 +44,27 @@ class DeleteStrategy extends BaseStrategy implements StrategyInterface
         }
     }
 
-
     protected function actionCheckAndConfirm(): string
     {
         $msg = &$this->incomingData['message'];
         $emailString = trim($msg['text']);
 
-
         if (!$this->accountManager->checkExistEmail($this->account, $emailString)) {
             return $this->sendErrorEmailNotFound($emailString);
         }
 
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             str_replace('%email%', $emailString, static::MSG_BTN_CONFIRM_DELETE),
-            json_encode(['keyboard' => [
-                [str_replace('%email%', $emailString, static::MSG_BTN_CONFIRMED)],
-                [static::MSG_BTN_NOT_CONFIRMED],],
-                'one_time_keyboard' => true
-            ])
+            json_encode(
+                [
+                    'keyboard' => [
+                        [str_replace('%email%', $emailString, static::MSG_BTN_CONFIRMED)],
+                        [static::MSG_BTN_NOT_CONFIRMED],
+                    ],
+                    'one_time_keyboard' => true,
+                ]
+            )
         );
         return 'delete:confirmationRequested';
     }
@@ -72,13 +80,13 @@ class DeleteStrategy extends BaseStrategy implements StrategyInterface
 
         $emailString = mb_substr($emailString, $msg['entities'][0]['offset'], $msg['entities'][0]['length']);
 
-
         $email = $this->accountManager->getEmail($this->account, $emailString);
         if ($email == null || !$this->accountManager->deleteEmail($this->account, $email->email)) {
             return $this->sendErrorEmailNotFound($emailString);
         }
 
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             static::MSG_DELETE_COMPLETE
         );
 
@@ -87,7 +95,8 @@ class DeleteStrategy extends BaseStrategy implements StrategyInterface
 
     protected function actionCanceled(): string
     {
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             static::MSG_DELETE_CANCELED
         );
         return 'delete:canceled';
@@ -95,10 +104,10 @@ class DeleteStrategy extends BaseStrategy implements StrategyInterface
 
     public function sendErrorEmailNotFound($emailString = ''): string
     {
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
         );
         return 'delete:error';
     }
-
 }

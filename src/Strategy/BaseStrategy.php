@@ -1,28 +1,13 @@
 <?php
 
-
 namespace M2T\Strategy;
-
 
 use M2T\AccountManager;
 use M2T\Client\MessengerInterface;
-use M2T\Client\SmtpClient;
-use M2T\Client\TelegramClient;
 use M2T\Handler;
 use M2T\Model\Account;
 use Psr\Log\LoggerInterface;
 
-/**
- *
- * @property MessengerInterface $messenger
- * @property LoggerInterface $logger
- * @property Account $account
- * @property AccountManager $accountManager
- * @property Handler $handler
- * @property int $chatId
- * @property array $incomingData Массив входящих данных, доступных для обработки
- *
- * */
 class BaseStrategy implements StrategyInterface
 {
     protected int $chatId;
@@ -39,8 +24,7 @@ class BaseStrategy implements StrategyInterface
         Account $account,
         AccountManager $accountManager,
         Handler $handler
-    )
-    {
+    ) {
         $chatId = &$incomingData['message']['chat']['id'];
         $this->chatId = $chatId;
         $this->logger = $logger;
@@ -53,7 +37,6 @@ class BaseStrategy implements StrategyInterface
 
     public function run($action = null)
     {
-
         if ($action != null && method_exists($this, 'action' . $action)) {
             $action = 'action' . $action;
         } else {
@@ -64,7 +47,5 @@ class BaseStrategy implements StrategyInterface
 
         $result = $this->$action();
         $this->handler->trigger($this, $result);
-
     }
-
 }

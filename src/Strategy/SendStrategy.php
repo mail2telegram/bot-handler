@@ -1,15 +1,13 @@
 <?php
 
-
 namespace M2T\Strategy;
-
 
 use M2T\App;
 use M2T\Client\ImapClient;
 use M2T\Client\SmtpClient;
 use M2T\Model\DraftEmail;
 
-class SendStrategy extends BaseStrategy implements StrategyInterface
+class SendStrategy extends BaseStrategy
 {
     public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
     public const MSG_CHOOSE_EMAIL = 'Выберите email с которого будем отправлять или введите если не отображен';
@@ -18,12 +16,13 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
     public const MSG_INSERT_MESSAGE = 'Введите текст сообщения:';
     public const MSG_ERROR = 'Произошла ошибка во время отправки';
 
-
     protected function actionIndex(): string
     {
         $list = [];
         foreach ($this->account->emails as $key => $email) {
-            if ($key >= App::get('telegramMaxShowAtList')) break;
+            if ($key >= App::get('telegramMaxShowAtList')) {
+                break;
+            }
             $list[] = [$email->email];
         }
 
@@ -32,10 +31,16 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
             $this->account->draftEmail->from = $this->account->emails[0]->email;
             return $this->sendInsertTitleDialog();
         } elseif (count($this->account->emails) > 0) {
-            $this->messenger->sendMessage($this->chatId, static::MSG_CHOOSE_EMAIL,
-                json_encode(['keyboard' => $list,
-                    'one_time_keyboard' => true
-                ]));
+            $this->messenger->sendMessage(
+                $this->chatId,
+                static::MSG_CHOOSE_EMAIL,
+                json_encode(
+                    [
+                        'keyboard' => $list,
+                        'one_time_keyboard' => true,
+                    ]
+                )
+            );
             return 'send:emailChoosed';
         } else {
             $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
@@ -44,11 +49,11 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
         }
     }
 
-    protected function actionInsertTitle():string
+    protected function actionInsertTitle(): string
     {
         $mailboxString = &$this->incomingData['message']['text'];
-        $mailbox = $this->accountManager->getEmail($this->account,$mailboxString);
-        if($mailbox == null){
+        $mailbox = $this->accountManager->getEmail($this->account, $mailboxString);
+        if ($mailbox == null) {
             return $this->sendErrorHasOccurred();
         }
 
@@ -58,14 +63,14 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
         return $this->sendInsertTitleDialog();
     }
 
-    protected function actionInsertTo():string
+    protected function actionInsertTo(): string
     {
         $this->account->draftEmail->subject = &$this->incomingData['message']['text'];
         $this->messenger->sendMessage($this->chatId, static::MSG_INSERT_TO);
         return 'send:toInserted';
     }
 
-    protected function actionInsertMessage():string
+    protected function actionInsertMessage(): string
     {
         $this->account->draftEmail->to = &$this->incomingData['message']['text'];
 
@@ -76,8 +81,8 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
     protected function actionSend(): string
     {
         try {
-            $mailbox = $this->accountManager->getEmail($this->account,$this->account->draftEmail->from);
-            if($mailbox == null){
+            $mailbox = $this->accountManager->getEmail($this->account, $this->account->draftEmail->from);
+            if ($mailbox == null) {
                 return $this->sendErrorHasOccurred();
             }
 
@@ -89,9 +94,8 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
             $mailer = App::get(SmtpClient::class);
             $result = $mailer->send($mailbox, $to, $subject, $msg);
             App::get(ImapClient::class)->appendToSent($mailbox, $to, $subject, $msg);
-
         } catch (Throwable $e) {
-            $this->logger->error((string)$e);
+            $this->logger->error((string) $e);
             return $this->sendErrorHasOccurred();
         }
         $this->messenger->sendMessage($this->chatId, $result ? 'Отправлено' : 'Ошибка');
@@ -99,7 +103,7 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
         return 'send:complete';
     }
 
-    protected function sendInsertTitleDialog():string
+    protected function sendInsertTitleDialog(): string
     {
         $this->messenger->sendMessage($this->chatId, static::MSG_INSERT_TITLE);
         return 'send:titleInserted';
@@ -107,7 +111,8 @@ class SendStrategy extends BaseStrategy implements StrategyInterface
 
     public function sendErrorHasOccurred($emailString = ''): string
     {
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             static::MSG_ERROR,
         );
         return 'send:error';

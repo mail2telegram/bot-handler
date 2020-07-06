@@ -11,6 +11,8 @@ use Psr\Log\LoggerInterface;
 return [
     'logLevel' => 'info', /** @see \Psr\Log\LogLevel */
     'workerMemoryLimit' => 134_217_728, // 128MB
+    'telegramTimeout' => 5.0,
+    'telegramMaxShowAtList' => 7,
     'queueAmount' => 1,
     'queueExchange' => 'telegram_update',
     'queueRoutingKey' => '1',

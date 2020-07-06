@@ -1,15 +1,10 @@
 <?php
 
-
 namespace M2T\Strategy;
 
 use M2T\App;
-use M2T\Client\SmtpClient;
-use M2T\Client\TelegramClient;
-use Psr\Log\LoggerInterface;
-use Throwable;
 
-class EditStrategy extends BaseStrategy implements StrategyInterface
+class EditStrategy extends BaseStrategy
 {
     public const MSG_CHOOSE_EMAIL = 'Выберите email для редактирования, или введите если нет в списке';
     public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
@@ -23,15 +18,23 @@ class EditStrategy extends BaseStrategy implements StrategyInterface
     {
         $list = [];
         foreach ($this->account->emails as $key => $email) {
-            if ($key >= App::get('telegramMaxShowAtList')) break;
+            if ($key >= App::get('telegramMaxShowAtList')) {
+                break;
+            }
             $list[] = [$email->email];
         }
 
         if (count($this->account->emails) > 0) {
-            $this->messenger->sendMessage($this->chatId, static::MSG_CHOOSE_EMAIL,
-                json_encode(['keyboard' => $list,
-                    'one_time_keyboard' => true
-                ]));
+            $this->messenger->sendMessage(
+                $this->chatId,
+                static::MSG_CHOOSE_EMAIL,
+                json_encode(
+                    [
+                        'keyboard' => $list,
+                        'one_time_keyboard' => true,
+                    ]
+                )
+            );
             return 'edit:emailChoosed';
         } else {
             $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
@@ -39,7 +42,6 @@ class EditStrategy extends BaseStrategy implements StrategyInterface
             return 'edit:cancel';
         }
     }
-
 
     protected function actionShowCurrentSettings(): string
     {
@@ -53,17 +55,23 @@ class EditStrategy extends BaseStrategy implements StrategyInterface
 
         $email->selected = true;
 
-        $this->messenger->sendMessage($this->chatId, static::MSG_CONFIRM_RUN . PHP_EOL . $email->getSettings(),
-            json_encode(['keyboard' => [[static::MSG_YES_RUN_EDIT], [static::MSG_NO],],
-                'one_time_keyboard' => true
-            ]));
+        $this->messenger->sendMessage(
+            $this->chatId,
+            static::MSG_CONFIRM_RUN . PHP_EOL . $email->getSettings(),
+            json_encode(
+                [
+                    'keyboard' => [[static::MSG_YES_RUN_EDIT], [static::MSG_NO],],
+                    'one_time_keyboard' => true,
+                ]
+            )
+        );
         return 'edit:runEdit';
     }
 
-
     public function sendErrorEmailNotFound($emailString = ''): string
     {
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
         );
         return 'delete:error';

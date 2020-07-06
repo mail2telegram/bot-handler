@@ -1,22 +1,17 @@
 <?php
 
-
 namespace M2T\Strategy;
-
 
 use M2T\AccountManager;
 use M2T\Client\MailConfigClient;
 use M2T\Client\MailConfigClientInterface;
 use M2T\Client\MessengerInterface;
 use M2T\Handler;
+use M2T\Model\Account;
 use M2T\Model\Email;
 use Psr\Log\LoggerInterface;
-use M2T\Model\Account;
 
-/**
- *
- * */
-class RegisterStrategy extends BaseStrategy implements StrategyInterface
+class RegisterStrategy extends BaseStrategy
 {
     protected MailConfigClientInterface $mailConfigClient;
 
@@ -41,8 +36,7 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
         Account $account,
         AccountManager $accountManager,
         Handler $handler
-    )
-    {
+    ) {
         parent::__construct($incomingData, $logger, $messenger, $account, $accountManager, $handler);
         $this->mailConfigClient = new MailConfigClient($this->logger);
     }
@@ -69,7 +63,8 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
         $emailString = trim($msg['text']);
 
         if (!filter_var($emailString, FILTER_VALIDATE_EMAIL)) {
-            $this->messenger->sendMessage($this->chatId,
+            $this->messenger->sendMessage(
+                $this->chatId,
                 static::MSG_INCORRECT_EMAIL,
                 json_encode(['force_reply' => true])
             );
@@ -77,11 +72,15 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
         }
 
         if ($this->accountManager->checkExistEmail($this->account, $emailString)) {
-            $this->messenger->sendMessage($this->chatId,
+            $this->messenger->sendMessage(
+                $this->chatId,
                 static::MSG_EMAIL_ALREADY_EXISTS,
-                json_encode(['keyboard' => [[static::MSG_YES], [static::MSG_NO],],
-                    'one_time_keyboard' => true
-                ])
+                json_encode(
+                    [
+                        'keyboard' => [[static::MSG_YES], [static::MSG_NO],],
+                        'one_time_keyboard' => true,
+                    ]
+                )
             );
             return 'register:emailAlreadyExists';
         }
@@ -103,14 +102,17 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
         $this->account->emails[] = $email;
 
         $this->messenger->sendMessage(
-            $this->chatId, $response_msg . PHP_EOL . $email->getSettings(),
-            json_encode([
-                'keyboard' => [
-                    [static::MSG_BTN_ACCEPT_AUTOCONFIG],
-                    [static::MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG],
-                ],
-                'one_time_keyboard' => true
-            ])
+            $this->chatId,
+            $response_msg . PHP_EOL . $email->getSettings(),
+            json_encode(
+                [
+                    'keyboard' => [
+                        [static::MSG_BTN_ACCEPT_AUTOCONFIG],
+                        [static::MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG],
+                    ],
+                    'one_time_keyboard' => true,
+                ]
+            )
         );
         return 'register:autoconfigDetected';
     }
@@ -147,7 +149,7 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
 
     protected function actionSmtpSocketInserted(): string
     {
-        $this->editField(null,'smtpSocketType');
+        $this->editField(null, 'smtpSocketType');
         return $this->showPasswordDialog();
     }
 
@@ -158,7 +160,8 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
 
     protected function showPasswordDialog(): string
     {
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             static::MSG_INSERT_PASSWORD,
             json_encode(['force_reply' => true])
         );
@@ -174,7 +177,8 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
         $email = $this->accountManager->getSelectedEmail($this->account);
 
         if ($email == null) {
-            $this->messenger->sendMessage($this->chatId,
+            $this->messenger->sendMessage(
+                $this->chatId,
                 static::MSG_ERROR
             );
             return 'register:selectedNotFound';
@@ -185,12 +189,12 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
 
         $this->messenger->deleteMessage($this->chatId, $msg['message_id']);
 
-        $this->messenger->sendMessage($this->chatId,
+        $this->messenger->sendMessage(
+            $this->chatId,
             str_replace('%new_values%', $email->getSettings(), static::MSG_REGISTRATION_COMPLETE)
         );
         return 'register:complete';
     }
-
 
     /**
      * Редактирует указанное поле и отправляет сообщение с просьбой ввести значение для следующего поля
@@ -202,10 +206,11 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
     {
         $msg = &$this->incomingData['message']['text'];
 
-
         $email = $this->accountManager->getSelectedEmail($this->account);
-        if ($email == null || !in_array($field, [null, 'imapHost', 'imapPort', 'imapSocketType', 'smtpHost', 'smtpPort', 'smtpSocketType'])) {
-            $this->messenger->sendMessage($this->chatId,
+        $fields = [null, 'imapHost', 'imapPort', 'imapSocketType', 'smtpHost', 'smtpPort', 'smtpSocketType'];
+        if ($email == null || !in_array($field, $fields)) {
+            $this->messenger->sendMessage(
+                $this->chatId,
                 static::MSG_ERROR
             );
             return 'register:selectedNotFound';
@@ -215,15 +220,19 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
             $email->$updateField = $msg;
         }
 
-        if($field != null){
+        if ($field != null) {
             $msg = '<b>' . $email->email . ': ' . $field . '</b>' . PHP_EOL;
-            $msg .= str_replace('%value%', '<b>' . (string)$email->$field . '</b>', static::MSG_CONFIRM_OR_TYPE_NEW);
+            $msg .= str_replace('%value%', '<b>' . (string) $email->$field . '</b>', static::MSG_CONFIRM_OR_TYPE_NEW);
 
-            $this->messenger->sendMessage($this->chatId,
+            $this->messenger->sendMessage(
+                $this->chatId,
                 $msg,
-                json_encode(['keyboard' => [[(string)$email->$field]],
-                    'one_time_keyboard' => true
-                ])
+                json_encode(
+                    [
+                        'keyboard' => [[(string) $email->$field]],
+                        'one_time_keyboard' => true,
+                    ]
+                )
             );
 
             return 'register:' . $field . 'Success';
@@ -231,5 +240,4 @@ class RegisterStrategy extends BaseStrategy implements StrategyInterface
 
         return 'register:editFieldSuccess';
     }
-
 }

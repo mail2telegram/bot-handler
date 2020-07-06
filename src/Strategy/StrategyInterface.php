@@ -10,7 +10,6 @@ use Psr\Log\LoggerInterface;
 
 interface StrategyInterface
 {
-
     public function __construct(
         array $incomingData,
         LoggerInterface $logger,
@@ -21,5 +20,4 @@ interface StrategyInterface
     );
 
     public function run();
-
 }

@@ -1,10 +1,8 @@
 <?php
 
-
 namespace M2T\Strategy;
 
-
-class ListStrategy extends BaseStrategy implements StrategyInterface
+class ListStrategy extends BaseStrategy
 {
     public const MSG_YOUR_LIST = '<b>Лист ваших email:</b>';
     public const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
@@ -26,5 +24,4 @@ class ListStrategy extends BaseStrategy implements StrategyInterface
 
         return 'list:complete';
     }
-
 }
