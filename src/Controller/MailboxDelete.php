@@ -4,8 +4,6 @@
 
 namespace M2T\Controller;
 
-use M2T\App;
-
 class MailboxDelete extends Base
 {
     protected const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
@@ -21,30 +19,7 @@ class MailboxDelete extends Base
 
     public function actionIndex(): void
     {
-        $account = $this->accountManager->load($this->state->chatId);
-        if (!$account || !$account->emails) {
-            $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
-            return;
-        }
-
-        $list = [];
-        foreach ($account->emails as $key => $email) {
-            if ($key >= App::get('telegramMaxShowAtList')) {
-                break;
-            }
-            $list[] = [$email->email];
-        }
-
-        $this->messenger->sendMessage(
-            $this->state->chatId,
-            static::MSG_CHOOSE_EMAIL,
-            json_encode(
-                [
-                    'keyboard' => $list,
-                    'one_time_keyboard' => true,
-                ]
-            )
-        );
+        parent::actionIndex();
         $this->setState(static::ACTION_CHECK);
     }
 

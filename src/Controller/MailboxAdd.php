@@ -193,7 +193,10 @@ class MailboxAdd extends Base
 
         // @todo Проверить данные - попробовать подключиться по IMAP и по SMTP
 
-        $account = $this->accountManager->load($this->state->chatId);
+        if (!$account = $this->accountManager->load($this->state->chatId)) {
+            $account = new Account($this->state->chatId);
+        }
+
         $mailbox = $this->state->mailbox;
         if (!$mailbox || !$account) {
             $this->messenger->sendMessage(

@@ -1,8 +1,11 @@
 <?php
 
+/** @noinspection JsonEncodingApiUsageInspection */
+
 namespace M2T\Controller;
 
 use M2T\AccountManager;
+use M2T\App;
 use M2T\Client\MessengerInterface;
 use M2T\State;
 
@@ -31,5 +34,33 @@ abstract class Base
         }
         $this->state->set($handler, $action);
         $this->state->changed = true;
+    }
+
+    public function actionIndex(): void
+    {
+        $account = $this->accountManager->load($this->state->chatId);
+        if (!$account || !$account->emails) {
+            $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
+            return;
+        }
+
+        $list = [];
+        foreach ($account->emails as $key => $email) {
+            if ($key >= App::get('telegramMaxShowAtList')) {
+                break;
+            }
+            $list[] = [$email->email];
+        }
+
+        $this->messenger->sendMessage(
+            $this->state->chatId,
+            static::MSG_CHOOSE_EMAIL,
+            json_encode(
+                [
+                    'keyboard' => $list,
+                    'one_time_keyboard' => true,
+                ]
+            )
+        );
     }
 }
