@@ -2,27 +2,29 @@
 
 namespace M2T\Client;
 
-use M2T\App;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use M2T\App;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-class TelegramClient
+class TelegramClient implements MessengerInterface
 {
     protected const BASE_URL = 'https://api.telegram.org/bot';
 
     protected LoggerInterface $logger;
     protected Client $client;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, ?ClientInterface $client = null)
     {
         $this->logger = $logger;
-        $this->client = new Client(
-            [
-                'base_uri' => static::BASE_URL . App::get('telegramToken') . '/',
-                'timeout' => 5.0,
-            ]
-        );
+        $this->client = $client
+            ?? new Client(
+                [
+                    'base_uri' => static::BASE_URL . (getenv('TELEGRAM_TOKEN') ?: App::get('telegramToken')) . '/',
+                    'timeout' => App::get('telegramTimeout'),
+                ]
+            );
     }
 
     protected function execute(string $method, array $data): array
@@ -61,11 +63,14 @@ class TelegramClient
 
     public function sendMessage(int $chatId, string $text, string $replyMarkup = ''): bool
     {
+        /** @noinspection JsonEncodingApiUsageInspection */
         $data = [
             'form_params' => [
                 'chat_id' => $chatId,
                 'text' => $text,
+                'parse_mode' => 'html',
                 'disable_web_page_preview' => true,
+                'reply_markup' => json_encode(['remove_keyboard' => true]),
             ],
         ];
         if ($replyMarkup) {

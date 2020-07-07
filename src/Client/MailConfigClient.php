@@ -7,7 +7,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 
-class MailConfigClient
+class MailConfigClient implements MailConfigClientInterface
 {
     protected const URL = 'https://autoconfig.thunderbird.net/v1.1/';
 

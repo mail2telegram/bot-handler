@@ -2,87 +2,65 @@
 
 namespace M2T;
 
-use M2T\Client\ImapClient;
-use M2T\Client\SmtpClient;
-use M2T\Client\TelegramClient;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 class Handler
 {
+    protected const COMMANDS = [
+        '/start' => Controller\Help::class,
+        '/help' => Controller\Help::class,
+        '/register' => Controller\MailboxAdd::class,
+        '/list' => Controller\MailboxList::class,
+        '/edit' => Controller\MailboxEdit::class,
+        '/delete' => Controller\MailboxDelete::class,
+        '/send' => Controller\MailSend::class,
+    ];
+
     protected LoggerInterface $logger;
-    protected TelegramClient $telegram;
+    protected StateManager $stateManager;
 
-    protected const MSG_REGISTER = 'Напишите email и пароль через пробел:';
-
-    public function __construct(LoggerInterface $logger, TelegramClient $telegram)
-    {
+    public function __construct(
+        LoggerInterface $logger,
+        StateManager $stateManager
+    ) {
         $this->logger = $logger;
-        $this->telegram = $telegram;
+        $this->stateManager = $stateManager;
     }
 
-    /**
-     * @param array $update
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
-     */
     public function handle(array $update): void
     {
-        // @todo handle updates here
-
         if (isset($update['message'])) {
-            $msg = &$update['message'];
             $chatId = &$update['message']['chat']['id'];
+            $messageText = &$update['message']['text'];
+            $messageText = trim($messageText);
 
-            // @todo draft register.step.0
-            if (isset($msg['text']) && $msg['text'] === '/register') {
-                /** @noinspection JsonEncodingApiUsageInspection */
-                $this->telegram->sendMessage(
-                    $chatId,
-                    static::MSG_REGISTER,
-                    json_encode(['force_reply' => true])
-                );
-                return;
-            }
+            $isBotCommand = isset($update['message']['entities'][0]['type'])
+                && $update['message']['entities'][0]['type'] === 'bot_command';
 
-            // @todo draft register.step.1
-            if (
-                isset($msg['reply_to_message'], $msg['text'])
-                && $msg['reply_to_message']['from']['is_bot'] === true
-                && $msg['reply_to_message']['text'] === static::MSG_REGISTER
-            ) {
-                // @todo validate, get imap and smtp host/port, save to redis
-                $accountData = $msg['text'];
-                $this->logger->debug('$accountData: ' . $accountData);
-                $this->telegram->deleteMessage($chatId, $msg['message_id']);
-                $this->telegram->sendMessage($chatId, 'Принято!');
-            }
+            $state = $this->stateManager->get($chatId);
 
-            // @todo draft reply to mail
-            if (
-                isset($msg['reply_to_message'], $msg['text'])
-                && $msg['reply_to_message']['from']['is_bot'] === true
-                // && is reply to mail
-            ) {
-                try {
-                    $account = App::get('test')['emails'][0];
-                    $to = App::get('test')['mailTo'];
-                    $mailer = App::get(SmtpClient::class); // we must create new client for each send
-                    $result = $mailer->send($account, $to, 'Test mail from M2T', $msg['text']);
-                    App::get(ImapClient::class)->appendToSent($account, $to, 'Test mail from M2T', $msg['text']);
-                } catch (Throwable $e) {
-                    $this->logger->error((string) $e);
-                    $result = false;
+            if ($isBotCommand) {
+                $handler = static::COMMANDS[$messageText] ?? Controller\Help::class;
+                $state->handler = $handler;
+                $state->action = '';
+            } else {
+                $handler = $state->handler ?: Controller\Help::class;
+                if (!class_exists($handler)) {
+                    $handler = Controller\Help::class;
                 }
-                $this->telegram->sendMessage($chatId, $result ? 'Отправлено' : 'Ошибка');
-                return;
             }
-        }
 
-        // @todo draft callback
-        if (isset($update['callback_query']['data']) && $update['callback_query']['data'] === 'Cancel') {
-            // do something
-            return;
+            $action = 'actionIndex';
+            if ($state->action && method_exists($handler, $state->action)) {
+                $action = $state->action;
+            }
+
+            App::build($handler, ['state' => $state])->$action($update);
+            if (!$state->changed) {
+                $state->changed = false;
+                $state->reset();
+            }
+            $this->stateManager->save($state);
         }
     }
 }

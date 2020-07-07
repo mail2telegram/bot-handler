@@ -1,7 +1,5 @@
 <?php
 
-use M2T\Model\Email;
-
 return [
     'logLevel' => 'debug',
     'telegramToken' => 'XXX',
@@ -16,19 +14,4 @@ return [
     ],
     // for tests only
     'testEmailPwd' => 'XXX',
-    'test' => [
-        'emails' => [
-            new Email(
-                'mail2telegram.app@gmail.com',
-                'XXX',
-                'imap.gmail.com',
-                993,
-                'ssl',
-                'smtp.gmail.com',
-                465,
-                'ssl'
-            ),
-        ],
-        'mailTo' => 'mail2telegram.app@gmail.com',
-    ],
 ];

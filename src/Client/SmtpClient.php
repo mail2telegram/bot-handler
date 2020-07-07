@@ -20,10 +20,10 @@ class SmtpClient
     }
 
     /**
-     * @param Email $account
-     * @param string           $to
-     * @param string           $subject
-     * @param string           $text
+     * @param Email  $account
+     * @param string $to
+     * @param string $subject
+     * @param string $text
      * @return bool
      * @throws \PHPMailer\PHPMailer\Exception
      */

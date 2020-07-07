@@ -18,6 +18,7 @@
     <rule ref="rulesets/cleancode.xml">
         <exclude name="ElseExpression"/>
         <exclude name="StaticAccess"/>
+        <exclude name="IfStatementAssignment"/>
     </rule>
     <rule ref="rulesets/cleancode.xml/StaticAccess">
         <properties>
