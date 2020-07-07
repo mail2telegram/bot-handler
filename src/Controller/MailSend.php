@@ -135,14 +135,15 @@ class MailSend extends Base
             $msg = &$update['message']['text'];
             $subject = $this->state->draftEmail->subject;
             $to = $this->state->draftEmail->to;
+            $this->state->draftEmail = null;
 
             $result = App::get(SmtpClient::class)->send($mailbox, $to, $subject, $msg);
 
-            // @todo перепроверить
-            // С ImapClient::appendToSent письмо кладется в отправленные дважды.
-            // Возможно достаточно отправить через SmtpClient.
-            // Возможно только в случае Gmail.
-            App::get(ImapClient::class)->appendToSent($mailbox, $to, $subject, $msg);
+            // Gmail при отправке по SMTP сам добавляет письмо в отправленные.
+            // А Яндекс нет. В крайнем случае будет добавлено дважды.
+            if ($mailbox->smtpHost !== 'smtp.gmail.com') {
+                App::get(ImapClient::class)->appendToSent($mailbox, $to, $subject, $msg);
+            }
         } catch (Throwable $e) {
             $this->logger->error((string) $e);
             $this->sendErrorHasOccurred();

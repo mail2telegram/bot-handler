@@ -233,6 +233,7 @@ class MailboxAdd extends Base
             $account->emails[] = $mailbox;
         }
         $this->accountManager->save($account);
+        $this->state->mailbox = null;
 
         $this->messenger->deleteMessage($this->state->chatId, $msg['message_id']);
         $this->messenger->sendMessage(
