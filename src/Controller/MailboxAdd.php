@@ -5,8 +5,11 @@
 namespace M2T\Controller;
 
 use M2T\AccountManager;
+use M2T\App;
+use M2T\Client\ImapClient;
 use M2T\Client\MailConfigClientInterface;
 use M2T\Client\MessengerInterface;
+use M2T\Client\SmtpClient;
 use M2T\Model\Account;
 use M2T\Model\Email;
 use M2T\State;
@@ -26,6 +29,8 @@ class MailboxAdd extends Base
     protected const MSG_EMAIL_AUTOCONFIG_GET
         = 'Нам удалось получить настройки автоматически. Вы можете принять их или изменить:';
     protected const MSG_ERROR = 'Произошла ошибка во время регистрации email :-( Попробуйте заново!';
+    protected const MSG_ERROR_CHECK_CONNECT = 'Не удалось подключиться к вашему почтовому ящику.'
+    . PHP_EOL . 'Проверьте адрес, пароль, настройки и попробуйте еще раз.';
     protected const MSG_CONFIRM_OR_TYPE_NEW = 'Подтвердите значение %value% либо введите свое';
     protected const MSG_COMPLETE
         = 'Спасибо, регистрация email завершена! Сохраненные настройки: ' . PHP_EOL . '%new_values%';
@@ -191,22 +196,30 @@ class MailboxAdd extends Base
         $msg = &$update['message'];
         $password = $msg['text'];
 
-        // @todo Проверить данные - попробовать подключиться по IMAP и по SMTP
-
-        if (!$account = $this->accountManager->load($this->state->chatId)) {
-            $account = new Account($this->state->chatId);
-        }
-
         $mailbox = $this->state->mailbox;
-        if (!$mailbox || !$account) {
+        if (!$mailbox) {
             $this->messenger->sendMessage(
                 $this->state->chatId,
                 static::MSG_ERROR
             );
             return;
         }
-
         $mailbox->pwd = $password;
+
+        if (
+            !App::get(SmtpClient::class)->check($mailbox)
+            || !App::get(ImapClient::class)->check($mailbox)
+        ) {
+            $this->messenger->sendMessage(
+                $this->state->chatId,
+                static::MSG_ERROR_CHECK_CONNECT
+            );
+            return;
+        }
+
+        if (!$account = $this->accountManager->load($this->state->chatId)) {
+            $account = new Account($this->state->chatId);
+        }
 
         if ($this->accountManager->mailboxExist($account, $mailbox->email)) {
             foreach ($account->emails as &$current) {

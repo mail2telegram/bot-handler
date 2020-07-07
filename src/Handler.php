@@ -55,12 +55,16 @@ class Handler
                 $action = $state->action;
             }
 
+            $this->logger->debug("Handler: $handler::$action");
+
             App::build($handler, ['state' => $state])->$action($update);
             if (!$state->changed) {
-                $state->changed = false;
                 $state->reset();
             }
+            $state->changed = false;
             $this->stateManager->save($state);
+
+            $this->logger->debug('State: ', (array) $state);
         }
     }
 }

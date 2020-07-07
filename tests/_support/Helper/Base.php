@@ -16,7 +16,7 @@ class Base extends Module
     }
 
     /**
-     * @return \M2T\Model\Email[]
+     * @return Email[]
      */
     public function emailProvider(): array
     {

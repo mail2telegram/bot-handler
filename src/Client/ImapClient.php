@@ -22,17 +22,22 @@ class ImapClient
         }
         $imapMailbox = "{{$mailbox->imapHost}:{$mailbox->imapPort}/imap/{$mailbox->imapSocketType}}$folder";
         try {
-            $stream = imap_open($imapMailbox, $mailbox->email, $mailbox->pwd);
+            $stream = @imap_open($imapMailbox, $mailbox->email, $mailbox->pwd);
+            imap_errors();
+            imap_alerts();
+            if (!$stream) {
+                return false;
+            }
             imap_append(
                 $stream,
                 $imapMailbox,
                 "From: {$mailbox->email}\r\nTo: $to\r\nSubject: $subject"
                 . "\r\n\r\n$text\r\n"
             );
-            imap_close($stream);
         } catch (Throwable $e) {
             return false;
         }
+        imap_close($stream);
         return true;
     }
 
@@ -40,12 +45,34 @@ class ImapClient
     {
         $imapMailbox = "{{$mailbox->imapHost}:{$mailbox->imapPort}/imap/{$mailbox->imapSocketType}}INBOX";
         try {
-            $stream = imap_open($imapMailbox, $mailbox->email, $mailbox->pwd);
+            $stream = @imap_open($imapMailbox, $mailbox->email, $mailbox->pwd);
+            imap_errors();
+            imap_alerts();
+            if (!$stream) {
+                return false;
+            }
             imap_delete($stream, $mailId, FT_UID);
-            imap_close($stream);
         } catch (Throwable $e) {
             return false;
         }
+        imap_close($stream);
+        return true;
+    }
+
+    public function check(Email $mailbox): bool
+    {
+        $imapMailbox = "{{$mailbox->imapHost}:{$mailbox->imapPort}/imap/{$mailbox->imapSocketType}}INBOX";
+        try {
+            $stream = @imap_open($imapMailbox, $mailbox->email, $mailbox->pwd);
+            imap_errors();
+            imap_alerts();
+            if (!$stream) {
+                return false;
+            }
+        } catch (Throwable $e) {
+            return false;
+        }
+        imap_close($stream);
         return true;
     }
 }
