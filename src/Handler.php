@@ -16,6 +16,10 @@ class Handler
         '/send' => Controller\MailSend::class,
     ];
 
+    protected const CALLBACKS = [
+        'delete' => Action\MailDelete::class,
+    ];
+
     protected LoggerInterface $logger;
     protected StateManager $stateManager;
 
@@ -30,41 +34,74 @@ class Handler
     public function handle(array $update): void
     {
         if (isset($update['message'])) {
-            $chatId = &$update['message']['chat']['id'];
-            $messageText = &$update['message']['text'];
-            $messageText = trim($messageText);
-
-            $isBotCommand = isset($update['message']['entities'][0]['type'])
-                && $update['message']['entities'][0]['type'] === 'bot_command';
-
-            $state = $this->stateManager->get($chatId);
-
-            if ($isBotCommand) {
-                $handler = static::COMMANDS[$messageText] ?? Controller\Help::class;
-                $state->handler = $handler;
-                $state->action = '';
-            } else {
-                $handler = $state->handler ?: Controller\Help::class;
-                if (!class_exists($handler)) {
-                    $handler = Controller\Help::class;
-                }
-            }
-
-            $action = 'actionIndex';
-            if ($state->action && method_exists($handler, $state->action)) {
-                $action = $state->action;
-            }
-
-            $this->logger->debug("Handler: $handler::$action");
-
-            App::build($handler, ['state' => $state])->$action($update);
-            if (!$state->changed) {
-                $state->reset();
-            }
-            $state->changed = false;
-            $this->stateManager->save($state);
-
-            $this->logger->debug('State: ', (array) $state);
+            $this->handleMessage($update);
+            return;
         }
+        if (
+            isset($update['callback_query']['data'], $update['callback_query']['message']['from']['is_bot'])
+            && $update['callback_query']['message']['from']['is_bot'] === true
+        ) {
+            $this->handleCallback($update);
+            return;
+        }
+    }
+
+    public function handleMessage(array $update): void
+    {
+        $chatId = &$update['message']['chat']['id'];
+        $messageText = &$update['message']['text'];
+        $messageText = trim($messageText);
+
+        $isBotCommand = isset($update['message']['entities'][0]['type'])
+            && $update['message']['entities'][0]['type'] === 'bot_command';
+
+        $state = $this->stateManager->get($chatId);
+
+        if ($isBotCommand) {
+            $handler = static::COMMANDS[$messageText] ?? Controller\Help::class;
+            $state->handler = $handler;
+            $state->action = '';
+        } else {
+            $handler = $state->handler ?: Controller\Help::class;
+            if (!class_exists($handler)) {
+                $handler = Controller\Help::class;
+            }
+        }
+
+        $action = 'actionIndex';
+        if ($state->action && method_exists($handler, $state->action)) {
+            $action = $state->action;
+        }
+
+        $this->logger->debug("Handler: $handler::$action");
+
+        App::build($handler, ['state' => $state])->$action($update);
+        if (!$state->changed) {
+            $state->reset();
+        }
+        $state->changed = false;
+        $this->stateManager->save($state);
+
+        $this->logger->debug('State: ', (array) $state);
+    }
+
+    public function handleCallback(array $update): void
+    {
+        $matches = [];
+        if (
+            preg_match('/^To: <(.+)>/m', $update['callback_query']['message']['text'], $matches)
+            && !empty($matches[1])
+        ) {
+            $this->handleCallbackMail($update, $matches[1]);
+        }
+    }
+
+    public function handleCallbackMail(array $update, string $email): void
+    {
+        [$action, $mailId] = explode(':', $update['callback_query']['data']);
+        if (!isset(static::CALLBACKS[$action])) {
+            return;
+        }
+        App::build(static::CALLBACKS[$action])($update['callback_query'], $email, $mailId);
     }
 }

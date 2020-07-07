@@ -43,6 +43,10 @@ class ImapClient
 
     public function delete(Email $mailbox, int $mailId): bool
     {
+        // @todo желательно не удалять с концами, а перекладывать в корзину.
+        // У разных провайдеров разное поведение для imap_delete:
+        // * Яндекс удаляет с концами
+        // * Gmail архивирует (убирает ярлык Входящее)
         $imapMailbox = "{{$mailbox->imapHost}:{$mailbox->imapPort}/imap/{$mailbox->imapSocketType}}INBOX";
         try {
             $stream = @imap_open($imapMailbox, $mailbox->email, $mailbox->pwd);
