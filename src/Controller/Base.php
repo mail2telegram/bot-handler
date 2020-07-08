@@ -7,6 +7,7 @@ namespace M2T\Controller;
 use M2T\AccountManager;
 use M2T\App;
 use M2T\Client\MessengerInterface;
+use M2T\Model\Account;
 use M2T\State;
 
 abstract class Base
@@ -37,14 +38,18 @@ abstract class Base
         $this->state->changed = true;
     }
 
-    public function actionIndex(): void
+    protected function getAccountOrReply(): ?Account
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account || !$account->emails) {
             $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
-            return;
+            return null;
         }
+        return $account;
+    }
 
+    protected function replyChooseEmail(Account $account): void
+    {
         $list = [];
         foreach ($account->emails as $key => $email) {
             if ($key >= App::get('telegramMaxShowAtList')) {

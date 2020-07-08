@@ -18,7 +18,10 @@ class MailboxEdit extends Base
 
     public function actionIndex(): void
     {
-        parent::actionIndex();
+        if (!$account = $this->getAccountOrReply()) {
+            return;
+        }
+        $this->replyChooseEmail($account);
         $this->setState(static::ACTION_SHOW_CURRENT_SETTINGS);
     }
 
