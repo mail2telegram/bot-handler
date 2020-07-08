@@ -4,59 +4,81 @@ namespace Base;
 
 use BaseTester;
 use Codeception\Test\Unit;
+use M2T\App;
 use M2T\Client\ImapClient;
 use M2T\Model\Email;
+use Psr\Log\LoggerInterface;
 
 class ImapClientTest extends Unit
 {
     protected BaseTester $tester;
 
-    public function testAppendToSent(): void
+    public function providerMail(): array
     {
-        $client = new ImapClient();
-        $mailboxes = $this->tester->emailProvider();
-        $to = $mailboxes[0]->email;
-        foreach ($mailboxes as $mailbox) {
-            $result = $client->appendToSent($mailbox, $to, 'test', 'test');
-            static::assertTrue($result, $mailbox->email);
+        /** @noinspection PhpIncludeInspection */
+        return require codecept_data_dir('/mailAccountList.php');
+    }
+
+    /**
+     * @dataProvider providerMail
+     * @param $mailAccount
+     * @param $expected
+     */
+    public function testCheck(Email $mailAccount, bool $expected): void
+    {
+        $client = new ImapClient(App::get(LoggerInterface::class));
+        $result = $client->check($mailAccount);
+        static::assertSame($expected, $result);
+    }
+
+    /**
+     * @dataProvider providerMail
+     * @param $mailAccount
+     * @param $expected
+     */
+    public function testAppendToSent(Email $mailAccount, bool $expected): void
+    {
+        if (!$expected) {
+            return;
         }
+        $client = new ImapClient(App::get(LoggerInterface::class));
+        $to = $mailAccount->email;
+        $result = $client->appendToSent($mailAccount, $to, 'test', 'test');
+        static::assertSame($expected, $result);
     }
 
-    public function testCheck(): void
+    /**
+     * @dataProvider providerMail
+     * @param $mailAccount
+     * @param $expected
+     * @noinspection PhpUndefinedFunctionInspection
+     */
+    protected function testFolderList(Email $mailAccount, bool $expected): void
     {
-        $client = new ImapClient();
-        $mailboxes = $this->tester->emailProvider();
-        foreach ($mailboxes as $mailbox) {
-            $result = $client->check($mailbox);
-            static::assertTrue($result, $mailbox->email);
+        if (!$expected) {
+            return;
         }
+        $client = new ImapClient(App::get(LoggerInterface::class));
+        $result = $client->folderList($mailAccount);
+        array_map(fn($el) => codecept_debug($el . ' => ' . imap_mutf7_to_utf8($el)), $result);
+        static::assertSame($expected, (bool) $result);
     }
 
-    public function testCheckFailed(): void
-    {
-        $client = new ImapClient();
-        $mailbox = new Email(
-            'mail2telegram.app@gmail.com',
-            'XXX',
-            'imap.gmail.com',
-            993,
-            'ssl',
-            'smtp.gmail.com',
-            465,
-            'ssl'
-        );
-        $result = $client->check($mailbox);
-        static::assertFalse($result, $mailbox->email);
-    }
-
-    // @todo draft
     protected function testDelete(): void
     {
-        $client = new ImapClient();
-        $mailbox = $this->tester->emailProvider()[0];
-        $mailId = 94;
+        $mailId = 196;
+        $mailAccount = $this->providerMail()['Gmail'][0];
+        $client = new ImapClient(App::get(LoggerInterface::class));
+        $result = $client->delete($mailAccount, $mailId);
+        static::assertTrue($result, $mailAccount->email);
+    }
 
-        $result = $client->delete($mailbox, $mailId);
-        static::assertTrue($result, $mailbox->email);
+    protected function testMoveToTrash(): void
+    {
+        $mailId = 196;
+        $mailAccount = $this->providerMail()['Gmail'][0];
+        $client = new ImapClient(App::get(LoggerInterface::class));
+        $result = $client->moveToTrash($mailAccount, $mailId);
+        static::assertTrue($result, $mailAccount->email);
     }
 }
