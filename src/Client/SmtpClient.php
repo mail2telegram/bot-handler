@@ -21,43 +21,43 @@ class SmtpClient
     }
 
     /**
-     * @param Email  $mailbox
+     * @param Email  $mailAccount
      * @param string $to
      * @param string $subject
      * @param string $text
      * @return bool
      * @throws \PHPMailer\PHPMailer\Exception
      */
-    public function send(Email $mailbox, string $to, string $subject, string $text): bool
+    public function send(Email $mailAccount, string $to, string $subject, string $text): bool
     {
-        $this->mailer->Host = $mailbox->smtpHost;
-        $this->mailer->Port = $mailbox->smtpPort;
-        $this->mailer->SMTPSecure = $mailbox->smtpSocketType;
-        $this->mailer->Username = explode('@', $mailbox->email)[0];
-        $this->mailer->Password = $mailbox->pwd;
+        $this->mailer->Host = $mailAccount->smtpHost;
+        $this->mailer->Port = $mailAccount->smtpPort;
+        $this->mailer->SMTPSecure = $mailAccount->smtpSocketType;
+        $this->mailer->Username = explode('@', $mailAccount->email)[0];
+        $this->mailer->Password = $mailAccount->pwd;
 
         $this->mailer->Subject = $subject;
         $this->mailer->Body = $text;
 
-        $this->mailer->setFrom($mailbox->email);
+        $this->mailer->setFrom($mailAccount->email);
         $this->mailer->addAddress($to);
         $result = $this->mailer->send();
 
         if (!$result) {
-            $this->mailer->Username = $mailbox->email;
+            $this->mailer->Username = $mailAccount->email;
             $result = $this->mailer->send();
         }
 
         return $result;
     }
 
-    public function check(Email $mailbox): bool
+    public function check(Email $mailAccount): bool
     {
-        $this->mailer->Host = $mailbox->smtpHost;
-        $this->mailer->Port = $mailbox->smtpPort;
-        $this->mailer->SMTPSecure = $mailbox->smtpSocketType;
-        $this->mailer->Username = explode('@', $mailbox->email)[0];
-        $this->mailer->Password = $mailbox->pwd;
+        $this->mailer->Host = $mailAccount->smtpHost;
+        $this->mailer->Port = $mailAccount->smtpPort;
+        $this->mailer->SMTPSecure = $mailAccount->smtpSocketType;
+        $this->mailer->Username = explode('@', $mailAccount->email)[0];
+        $this->mailer->Password = $mailAccount->pwd;
 
         try {
             return $this->mailer->smtpConnect();

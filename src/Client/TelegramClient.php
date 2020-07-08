@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection JsonEncodingApiUsageInspection */
+
 namespace M2T\Client;
 
 use GuzzleHttp\Client;
@@ -63,7 +65,6 @@ class TelegramClient implements MessengerInterface
 
     public function sendMessage(int $chatId, string $text, string $replyMarkup = ''): bool
     {
-        /** @noinspection JsonEncodingApiUsageInspection */
         $data = [
             'form_params' => [
                 'chat_id' => $chatId,
@@ -90,5 +91,30 @@ class TelegramClient implements MessengerInterface
         ];
         $result = $this->execute('deleteMessage', $data);
         return (bool) $result;
+    }
+
+    public function editMessageReplyMarkup(int $chatId, int $messageId, array $replyMarkup): bool
+    {
+        $data = [
+            'form_params' => [
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'reply_markup' => json_encode($replyMarkup),
+            ],
+        ];
+        $result = $this->execute('editMessageReplyMarkup', $data);
+        return (bool) $result;
+    }
+
+    public function replaceMarkupBtn(array &$replyMarkup, string $key, array $newBtn): void
+    {
+        foreach ($replyMarkup as &$keyboardsList) {
+            foreach ($keyboardsList as $index => $keyboard) {
+                if ($keyboard['text'] === $key) {
+                    $keyboardsList[$index] = $newBtn;
+                }
+            }
+        }
+        unset($keyboardsList);
     }
 }
