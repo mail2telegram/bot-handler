@@ -36,6 +36,7 @@ class MailboxAdd extends Base
         = 'Спасибо, регистрация email завершена! Сохраненные настройки: ' . PHP_EOL . '%new_values%';
     protected const MSG_YES = 'Да';
     protected const MSG_NO = 'Нет';
+    protected const MSG_CANCEL = 'Отменено!';
 
     protected const ACTION_CONFIG = 'actionConfig';
     public const ACTION_REQUEST_IMAP_HOST = 'actionRequestImapHost';
@@ -88,7 +89,7 @@ class MailboxAdd extends Base
             $account = new Account($this->state->chatId);
         }
 
-        // @todo Обработать "Данный email уже добавлен. Изменить его настройки?"
+
         if ($this->accountManager->mailboxExist($account, $emailString)) {
             $this->messenger->sendMessage(
                 $this->state->chatId,
@@ -100,6 +101,7 @@ class MailboxAdd extends Base
                     ]
                 )
             );
+            $this->setState(static::ACTION_REQUEST_IMAP_HOST);
             return;
         }
 
@@ -139,7 +141,10 @@ class MailboxAdd extends Base
             return;
         }
         if ($update['message']['text'] === MailboxEdit::MSG_NO) {
-            // @todo сообщение об отмене? (чтобы скрыть кнопки)
+            $this->messenger->sendMessage(
+                $this->state->chatId,
+                static::MSG_CANCEL
+            );
             return;
         }
         $this->requestField($update, 'imapHost');
