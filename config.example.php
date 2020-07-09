@@ -2,7 +2,8 @@
 
 return [
     'logLevel' => 'debug',
-    'telegramToken' => 'XXX',
+    'cryptoKey' => 'XXX',
+    'telegramToken' => getenv('TELEGRAM_TOKEN') ?: 'XXX',
     'redis' => [
         'host' => 'm2t_redis',
     ],
@@ -13,5 +14,5 @@ return [
         'pwd' => 'guest',
     ],
     // for tests only
-    'testEmailPwd' => 'XXX',
+    'testEmailPwd' => getenv('TEST_EMAIL_PWD') ?: 'XXX',
 ];

@@ -4,8 +4,10 @@ use M2T\Client\MailConfigClient;
 use M2T\Client\MailConfigClientInterface;
 use M2T\Client\MessengerInterface;
 use M2T\Client\TelegramClient;
+use M2T\Interfaces\ICrypto;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Mqwerty\Crypto;
 use pahanini\Monolog\Formatter\CliFormatter;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -21,7 +23,9 @@ return [
     'queueRoutingKey' => '1',
     'shared' => [
         LoggerInterface::class,
+        ICrypto::class,
     ],
+    ICrypto::class => fn($c) => new Crypto(($c->get('cryptoKey'))),
     LoggerInterface::class => static function ($c) {
         $stream = new StreamHandler(STDERR, $c->get('logLevel'));
         $stream->setFormatter(new CliFormatter());

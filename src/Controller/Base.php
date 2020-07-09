@@ -14,6 +14,7 @@ abstract class Base
 {
     protected const MSG_EMPTY_LIST = 'No email addresses';
     protected const MSG_CHOOSE_EMAIL = 'Выберите email или введите если его нет в списке';
+    protected const MSG_ERROR = 'Error';
 
     protected State $state;
     protected MessengerInterface $messenger;

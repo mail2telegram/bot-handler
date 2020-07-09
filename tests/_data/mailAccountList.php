@@ -2,7 +2,7 @@
 
 use M2T\Model\Email;
 
-$pwd = getenv('TEST_EMAIL_PWD') ?: (require './config.php')['testEmailPwd'];
+$pwd = (require './config.php')['testEmailPwd'];
 return [
     'Gmail' => [
         new Email(

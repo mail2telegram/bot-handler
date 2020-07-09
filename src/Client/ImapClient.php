@@ -54,7 +54,7 @@ final class ImapClient
      */
     private function imapOpen(Email $mailAccount, string $mailbox)
     {
-        $stream = @imap_open($mailbox, $mailAccount->email, $mailAccount->pwd);
+        $stream = @imap_open($mailbox, $mailAccount->email, $mailAccount->getPwd());
         $this->debugErrors();
         return $stream ?: false;
     }

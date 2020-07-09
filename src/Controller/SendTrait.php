@@ -16,6 +16,13 @@ trait SendTrait
     protected MessengerInterface $messenger;
     protected State $state;
 
+    /**
+     * @param $mailboxFrom
+     * @param $to
+     * @param $subject
+     * @param $msg
+     * @suppress PhanUndeclaredMethod
+     */
     protected function send($mailboxFrom, $to, $subject, $msg): void
     {
         try {

@@ -101,16 +101,16 @@ class Handler
             preg_match('/^To: <(.+)>/m', $update['callback_query']['message']['text'], $matches)
             && !empty($matches[1])
         ) {
-            $this->handleCallbackMail($update, $matches[1]);
+            $this->handleCallbackMail($update['callback_query'], $matches[1]);
         }
     }
 
-    public function handleCallbackMail(array $update, string $email): void
+    public function handleCallbackMail(array $callback, string $email): void
     {
-        [$action, $mailId] = explode(':', $update['callback_query']['data']);
+        [$action, $mailId] = explode(':', $callback['data']);
         if (!isset(static::CALLBACKS[$action])) {
             return;
         }
-        App::build(static::CALLBACKS[$action])($update['callback_query'], $email, $mailId);
+        App::build(static::CALLBACKS[$action])($callback, $email, $mailId);
     }
 }

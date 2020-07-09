@@ -205,7 +205,7 @@ class MailboxAdd extends Base
             $this->replyError();
             return;
         }
-        $mailbox->pwd = $password;
+        $mailbox->setPwd($password);
 
         if (
             !App::get(SmtpClient::class)->check($mailbox)

@@ -34,7 +34,7 @@ class SmtpClient
         $this->mailer->Port = $mailAccount->smtpPort;
         $this->mailer->SMTPSecure = $mailAccount->smtpSocketType;
         $this->mailer->Username = explode('@', $mailAccount->email)[0];
-        $this->mailer->Password = $mailAccount->pwd;
+        $this->mailer->Password = $mailAccount->getPwd();
 
         $this->mailer->Subject = $subject;
         $this->mailer->Body = $text;
@@ -57,7 +57,7 @@ class SmtpClient
         $this->mailer->Port = $mailAccount->smtpPort;
         $this->mailer->SMTPSecure = $mailAccount->smtpSocketType;
         $this->mailer->Username = explode('@', $mailAccount->email)[0];
-        $this->mailer->Password = $mailAccount->pwd;
+        $this->mailer->Password = $mailAccount->getPwd();
 
         try {
             return $this->mailer->smtpConnect();
