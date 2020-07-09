@@ -15,9 +15,9 @@ class MailSpam extends MailBase
         }
         if ($this->imapClient->moveToSpam($mailbox, $mailId)) {
             $this->messenger->deleteMessage($chatId, $callback['message']['message_id']);
-            $this->messenger->sendMessage($chatId, static::MSG_SUCCESS);
+            $this->messenger->answerCallbackQuery($callback['id'], static::MSG_SUCCESS);
             return;
         }
-        $this->replyError($chatId);
+        $this->replyError($callback['id']);
     }
 }

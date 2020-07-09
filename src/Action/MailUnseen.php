@@ -18,11 +18,12 @@ class MailUnseen extends MailBase
             $this->messenger->replaceMarkupBtn(
                 $replyMarkup['inline_keyboard'],
                 static::NAME,
-                ['text' => MailSeen::NAME, 'callback_data' => MailSeen::NAME . ':' . $mailId]
+                ['text' => 'Mark as read', 'callback_data' => MailSeen::NAME . ':' . $mailId]
             );
             $this->messenger->editMessageReplyMarkup($chatId, $msgId, $replyMarkup);
+            $this->messenger->answerCallbackQuery($callback['id'], static::MSG_ERROR);
             return;
         }
-        $this->replyError($chatId);
+        $this->replyError($callback['id']);
     }
 }

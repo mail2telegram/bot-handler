@@ -93,6 +93,20 @@ class TelegramClient implements MessengerInterface
         return (bool) $result;
     }
 
+    public function answerCallbackQuery(string $callbackId, string $text = ''): bool
+    {
+        $data = [
+            'form_params' => [
+                'callback_query_id' => $callbackId,
+            ],
+        ];
+        if ($text) {
+            $data['form_params']['text'] = $text;
+        }
+        $result = $this->execute('answerCallbackQuery', $data);
+        return (bool) $result;
+    }
+
     public function editMessageReplyMarkup(int $chatId, int $messageId, array $replyMarkup): bool
     {
         $data = [

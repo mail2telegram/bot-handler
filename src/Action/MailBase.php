@@ -36,21 +36,21 @@ abstract class MailBase
 
     protected function getEmailAccountOrReply(array $callback, string $email): ?Email
     {
-        $chatId = $callback['message']['chat']['id'];
+        $chatId = $this->getChatId($callback);
         $account = $this->accountManager->load($chatId);
         if (!$account || !$account->emails) {
-            $this->messenger->sendMessage($chatId, static::MSG_NO_MAILBOXES);
+            $this->messenger->answerCallbackQuery($callback['id'], static::MSG_NO_MAILBOXES);
             return null;
         }
         if (!$mailbox = $this->accountManager->mailboxGet($account, $email)) {
-            $this->messenger->sendMessage($chatId, static::MSG_MAILBOX_NOT_FOUND);
+            $this->messenger->answerCallbackQuery($callback['id'], static::MSG_MAILBOX_NOT_FOUND);
             return null;
         }
         return $mailbox;
     }
 
-    protected function replyError($chatId): void
+    protected function replyError($callbackId): void
     {
-        $this->messenger->sendMessage($chatId, static::MSG_ERROR);
+        $this->messenger->answerCallbackQuery($callbackId, static::MSG_ERROR);
     }
 }
