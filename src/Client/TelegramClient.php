@@ -106,29 +106,31 @@ class TelegramClient implements MessengerInterface
         return (bool) $result;
     }
 
-    public function replaceMarkupBtn(array &$replyMarkup, string $key, array $newBtn): void
+    public function replaceMarkupBtn(array &$replyMarkup, string $key, array $newBtn): bool
     {
         foreach ($replyMarkup as &$keyboardsList) {
             foreach ($keyboardsList as $index => $keyboard) {
-                if ($keyboard['text'] === $key) {
+                if (0 === strpos($keyboard['callback_data'], $key)) {
                     $keyboardsList[$index] = $newBtn;
-                    return;
+                    return true;
                 }
             }
         }
         unset($keyboardsList);
+        return false;
     }
 
-    public function deleteMarkupBtn(array &$replyMarkup, string $key): void
+    public function deleteMarkupBtn(array &$replyMarkup, string $key): bool
     {
         foreach ($replyMarkup as &$keyboardsList) {
             foreach ($keyboardsList as $index => $keyboard) {
-                if ($keyboard['text'] === $key) {
+                if (0 === strpos($keyboard['callback_data'], $key)) {
                     unset($keyboardsList[$index]);
-                    return;
+                    return true;
                 }
             }
         }
         unset($keyboardsList);
+        return false;
     }
 }

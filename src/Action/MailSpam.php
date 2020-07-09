@@ -4,6 +4,7 @@ namespace M2T\Action;
 
 class MailSpam extends MailBase
 {
+    public const NAME = 'spam';
     protected const MSG_SUCCESS = 'Moved to Spam folder';
 
     public function __invoke(array $callback, string $email, int $mailId)

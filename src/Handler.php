@@ -17,10 +17,10 @@ class Handler
     ];
 
     protected const CALLBACKS = [
-        'delete' => Action\MailDelete::class,
-        'spam' => Action\MailSpam::class,
-        'seen' => Action\MailSeen::class,
-        'unseen' => Action\MailUnseen::class,
+        Action\MailDelete::NAME => Action\MailDelete::class,
+        Action\MailSpam::NAME => Action\MailSpam::class,
+        Action\MailSeen::NAME => Action\MailSeen::class,
+        Action\MailUnseen::NAME => Action\MailUnseen::class,
     ];
 
     protected LoggerInterface $logger;

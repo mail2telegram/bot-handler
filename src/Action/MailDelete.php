@@ -4,6 +4,8 @@ namespace M2T\Action;
 
 class MailDelete extends MailBase
 {
+    public const NAME = 'delete';
+
     public function __invoke(array $callback, string $email, int $mailId)
     {
         $chatId = $this->getChatId($callback);

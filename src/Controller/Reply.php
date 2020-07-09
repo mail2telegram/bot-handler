@@ -3,6 +3,8 @@
 namespace M2T\Controller;
 
 use M2T\AccountManager;
+use M2T\Action\MailDelete;
+use M2T\Action\MailSpam;
 use M2T\Client\MessengerInterface;
 use M2T\State;
 use Psr\Log\LoggerInterface;
@@ -56,8 +58,8 @@ class Reply extends Base
         if ($this->send($mailbox, $toMail, 'Re: ' . $subject, $msg)) {
             $replyMarkup = &$update['message']['reply_to_message']['reply_markup'];
             $msgId = &$update['message']['reply_to_message']['message_id'];
-            $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], 'Spam');
-            $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], 'Delete');
+            $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], MailSpam::NAME);
+            $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], MailDelete::NAME);
             $this->messenger->editMessageReplyMarkup($this->state->chatId, $msgId, $replyMarkup);
         }
     }

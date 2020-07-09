@@ -4,6 +4,8 @@ namespace M2T\Action;
 
 class MailUnseen extends MailBase
 {
+    public const NAME = 'unseen';
+
     public function __invoke(array $callback, string $email, int $mailId)
     {
         $chatId = $this->getChatId($callback);
@@ -15,8 +17,8 @@ class MailUnseen extends MailBase
             $msgId = &$callback['message']['message_id'];
             $this->messenger->replaceMarkupBtn(
                 $replyMarkup['inline_keyboard'],
-                'Unseen',
-                ['text' => 'Seen', 'callback_data' => "seen:$mailId"]
+                static::NAME,
+                ['text' => MailSeen::NAME, 'callback_data' => MailSeen::NAME . ':' . $mailId]
             );
             $this->messenger->editMessageReplyMarkup($chatId, $msgId, $replyMarkup);
             return;

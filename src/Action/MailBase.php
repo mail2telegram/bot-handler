@@ -9,6 +9,8 @@ use M2T\Model\Email;
 
 abstract class MailBase
 {
+    public const NAME = 'abstract';
+
     protected const MSG_NO_MAILBOXES = 'No email addresses';
     protected const MSG_MAILBOX_NOT_FOUND = 'Email address not found in account';
     protected const MSG_ERROR = 'Error';
