@@ -77,7 +77,7 @@ class Handler
             && $update['message']['reply_to_message']['from']['is_bot'] === true
             && preg_match('/^To: <(.+)>/m', $update['message']['reply_to_message']['text'])
         ) {
-            $handler = Controller\Reply::class;
+            $handler = Controller\MailReply::class;
         } else {
             $handler = $state->handler ?: Controller\Help::class;
             if (!class_exists($handler)) {

@@ -15,4 +15,8 @@ interface MessengerInterface
     public function replaceMarkupBtn(array &$replyMarkup, string $key, array $newBtn): bool;
 
     public function deleteMarkupBtn(array &$replyMarkup, string $key): bool;
+
+    public function getFile($fileId, &$file, &$fileName): bool;
+
+    public function sendChatAction(int $chatId, string $action): bool;
 }

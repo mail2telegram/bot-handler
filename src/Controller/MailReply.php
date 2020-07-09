@@ -2,28 +2,13 @@
 
 namespace M2T\Controller;
 
-use M2T\AccountManager;
 use M2T\Action\MailDelete;
 use M2T\Action\MailSpam;
-use M2T\Client\MessengerInterface;
-use M2T\State;
-use Psr\Log\LoggerInterface;
 
-class Reply extends Base
+class MailReply extends Base
 {
-    use SendTrait;
 
     protected const MSG_ERROR = 'Произошла ошибка во время отправки';
-
-    public function __construct(
-        State $state,
-        MessengerInterface $messenger,
-        AccountManager $accountManager,
-        LoggerInterface $logger
-    ) {
-        parent::__construct($state, $messenger, $accountManager);
-        $this->logger = $logger;
-    }
 
     public function actionIndex($update): void
     {
@@ -54,8 +39,11 @@ class Reply extends Base
             return;
         }
 
-        $msg = &$update['message']['text'];
-        if ($this->send($mailbox, $toMail, 'Re: ' . $subject, $msg)) {
+        $message = '';
+        $attachment = [];
+        $this->parseMessageAndAttachment($update, $message, $attachment);
+
+        if ($this->send($mailbox, $toMail, 'Re: ' . $subject, $message, $attachment)) {
             $replyMarkup = &$update['message']['reply_to_message']['reply_markup'];
             $msgId = &$update['message']['reply_to_message']['message_id'];
             $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], MailSpam::NAME);

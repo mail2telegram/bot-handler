@@ -21,14 +21,15 @@ class SmtpClient
     }
 
     /**
-     * @param Email  $mailAccount
+     * @param Email $mailAccount
      * @param string $to
      * @param string $subject
      * @param string $text
+     * @param array $attachment
      * @return bool
-     * @throws \PHPMailer\PHPMailer\Exception
+     * @throws Exception
      */
-    public function send(Email $mailAccount, string $to, string $subject, string $text): bool
+    public function send(Email $mailAccount, string $to, string $subject, string $text, $attachment = []): bool
     {
         $this->mailer->Host = $mailAccount->smtpHost;
         $this->mailer->Port = $mailAccount->smtpPort;
@@ -41,8 +42,12 @@ class SmtpClient
 
         $this->mailer->setFrom($mailAccount->email);
         $this->mailer->addAddress($to);
-        $result = $this->mailer->send();
 
+        if (!empty($attachment) && !$this->mailer->addStringAttachment($attachment['file'], $attachment['fileName'])) {
+            return false;
+        }
+
+        $result = $this->mailer->send();
         if (!$result) {
             $this->mailer->Username = $mailAccount->email;
             $result = $this->mailer->send();

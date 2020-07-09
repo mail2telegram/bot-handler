@@ -13,6 +13,7 @@ use M2T\Client\SmtpClient;
 use M2T\Model\Account;
 use M2T\Model\Email;
 use M2T\State;
+use Psr\Log\LoggerInterface;
 
 /**
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
@@ -54,9 +55,10 @@ class MailboxAdd extends Base
         State $state,
         MessengerInterface $messenger,
         AccountManager $accountManager,
-        MailConfigClientInterface $mailConfigClient
+        MailConfigClientInterface $mailConfigClient,
+        LoggerInterface $logger
     ) {
-        parent::__construct($state, $messenger, $accountManager);
+        parent::__construct($state, $messenger, $accountManager, $logger);
         $this->mailConfigClient = $mailConfigClient;
     }
 
