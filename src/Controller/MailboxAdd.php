@@ -89,7 +89,6 @@ class MailboxAdd extends Base
             $account = new Account($this->state->chatId);
         }
 
-
         if ($this->accountManager->mailboxExist($account, $emailString)) {
             $this->messenger->sendMessage(
                 $this->state->chatId,

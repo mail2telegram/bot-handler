@@ -13,8 +13,6 @@ class Reply extends Base
 
     protected const MSG_ERROR = 'Произошла ошибка во время отправки';
 
-    protected LoggerInterface $logger;
-
     public function __construct(
         State $state,
         MessengerInterface $messenger,
@@ -33,22 +31,19 @@ class Reply extends Base
             return;
         }
 
-        $this->logger->debug(print_r($update['message']['reply_to_message']['text'], true));
-
         $matches = $matches2 = $matches3 = [];
         preg_match('/^To: <(.+)>/m', $update['message']['reply_to_message']['text'], $matches);
         preg_match('/^From:(.+)<(.+)>/m', $update['message']['reply_to_message']['text'], $matches2);
         preg_match('/(.+)Date:/sm', $update['message']['reply_to_message']['text'], $matches3);
 
-
-        if (!isset($matches[1]) || !isset($matches2[2])) {
+        if (!isset($matches[1], $matches2[2])) {
             $this->sendErrorHasOccurred();
             return;
         }
 
         $from = $matches[1];
         $toMail = $matches2[2];
-        //$toName = $matches2[1]; @todo Can be used as name
+        //$toName = $matches2[1]; // Can be used as name
         $subject = $matches3[1] ?? '';
 
         $mailbox = $this->accountManager->mailboxGet($account, $from);
@@ -58,7 +53,6 @@ class Reply extends Base
         }
 
         $msg = &$update['message']['text'];
-
         $this->send($mailbox, $toMail, 'Re: ' . $subject, $msg);
     }
 }

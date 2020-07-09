@@ -27,8 +27,6 @@ class MailSend extends Base
     protected const ACTION_INSERT_MESSAGE = 'actionInsertMessage';
     protected const ACTION_SEND = 'actionSend';
 
-    protected LoggerInterface $logger;
-
     public function __construct(
         State $state,
         MessengerInterface $messenger,
@@ -41,9 +39,7 @@ class MailSend extends Base
 
     public function actionIndex(): void
     {
-        $account = $this->accountManager->load($this->state->chatId);
-        if (!$account || !$account->emails) {
-            $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
+        if (!$account = $this->getAccountOrReply()) {
             return;
         }
 

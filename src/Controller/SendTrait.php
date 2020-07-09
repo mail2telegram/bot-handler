@@ -16,7 +16,7 @@ trait SendTrait
     protected MessengerInterface $messenger;
     protected State $state;
 
-    protected function send($mailboxFrom, $to, $subject, $msg)
+    protected function send($mailboxFrom, $to, $subject, $msg): void
     {
         try {
             $result = App::get(SmtpClient::class)->send($mailboxFrom, $to, $subject, $msg);
@@ -39,7 +39,6 @@ trait SendTrait
      */
     protected function sendErrorHasOccurred(): void
     {
-
         $this->messenger->sendMessage(
             $this->state->chatId,
             static::MSG_ERROR,

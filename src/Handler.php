@@ -66,7 +66,8 @@ class Handler
             $state->action = '';
         } elseif (
             isset($update['message']['reply_to_message']['text'])
-            && preg_match('/^To: <(.+)>/m', $update['message']['reply_to_message']['text'], $matches)
+            && $update['message']['reply_to_message']['from']['is_bot'] === true
+            && preg_match('/^To: <(.+)>/m', $update['message']['reply_to_message']['text'])
         ) {
             $handler = Controller\Reply::class;
         } else {
