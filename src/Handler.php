@@ -64,6 +64,12 @@ class Handler
             $handler = static::COMMANDS[$messageText] ?? Controller\Help::class;
             $state->handler = $handler;
             $state->action = '';
+        } elseif (
+            isset($update['message']['reply_to_message']['text'])
+            && $update['message']['reply_to_message']['from']['is_bot'] === true
+            && preg_match('/^To: <(.+)>/m', $update['message']['reply_to_message']['text'])
+        ) {
+            $handler = Controller\Reply::class;
         } else {
             $handler = $state->handler ?: Controller\Help::class;
             if (!class_exists($handler)) {

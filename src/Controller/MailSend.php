@@ -6,16 +6,15 @@ namespace M2T\Controller;
 
 use M2T\AccountManager;
 use M2T\App;
-use M2T\Client\ImapClient;
 use M2T\Client\MessengerInterface;
-use M2T\Client\SmtpClient;
 use M2T\Model\DraftEmail;
 use M2T\State;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 class MailSend extends Base
 {
+    use SendTrait;
+
     protected const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
     protected const MSG_CHOOSE_EMAIL = 'Выберите email с которого будем отправлять или введите если не отображен';
     protected const MSG_INSERT_TITLE = 'Введите заголовок:';
@@ -27,8 +26,6 @@ class MailSend extends Base
     protected const ACTION_INSERT_TO = 'actionInsertTo';
     protected const ACTION_INSERT_MESSAGE = 'actionInsertMessage';
     protected const ACTION_SEND = 'actionSend';
-
-    protected LoggerInterface $logger;
 
     public function __construct(
         State $state,
@@ -42,9 +39,7 @@ class MailSend extends Base
 
     public function actionIndex(): void
     {
-        $account = $this->accountManager->load($this->state->chatId);
-        if (!$account || !$account->emails) {
-            $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
+        if (!$account = $this->getAccountOrReply()) {
             return;
         }
 
@@ -119,50 +114,29 @@ class MailSend extends Base
 
     public function actionSend($update): void
     {
-        try {
-            $account = $this->accountManager->load($this->state->chatId);
-            if (!$account) {
-                $this->sendErrorHasOccurred();
-                return;
-            }
-
-            $mailbox = $this->accountManager->mailboxGet($account, $this->state->draftEmail->from);
-            if ($mailbox === null) {
-                $this->sendErrorHasOccurred();
-                return;
-            }
-
-            $msg = &$update['message']['text'];
-            $subject = $this->state->draftEmail->subject;
-            $to = $this->state->draftEmail->to;
-            $this->state->draftEmail = null;
-
-            $result = App::get(SmtpClient::class)->send($mailbox, $to, $subject, $msg);
-
-            // Gmail при отправке по SMTP сам добавляет письмо в отправленные.
-            // А Яндекс нет. В крайнем случае будет добавлено дважды.
-            if ($mailbox->smtpHost !== 'smtp.gmail.com') {
-                App::get(ImapClient::class)->appendToSent($mailbox, $to, $subject, $msg);
-            }
-        } catch (Throwable $e) {
-            $this->logger->error((string) $e);
+        $account = $this->accountManager->load($this->state->chatId);
+        if (!$account) {
             $this->sendErrorHasOccurred();
             return;
         }
-        $this->messenger->sendMessage($this->state->chatId, $result ? 'Отправлено' : 'Ошибка');
+
+        $mailbox = $this->accountManager->mailboxGet($account, $this->state->draftEmail->from);
+        if ($mailbox === null) {
+            $this->sendErrorHasOccurred();
+            return;
+        }
+
+        $msg = &$update['message']['text'];
+        $subject = $this->state->draftEmail->subject;
+        $to = $this->state->draftEmail->to;
+        $this->state->draftEmail = null;
+
+        $this->send($mailbox, $to, $subject, $msg);
     }
 
     protected function sendInsertTitleDialog(): void
     {
         $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_TITLE);
         $this->setState(static::ACTION_INSERT_TO);
-    }
-
-    protected function sendErrorHasOccurred(): void
-    {
-        $this->messenger->sendMessage(
-            $this->state->chatId,
-            static::MSG_ERROR,
-        );
     }
 }
