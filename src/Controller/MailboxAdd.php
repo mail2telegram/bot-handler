@@ -202,10 +202,7 @@ class MailboxAdd extends Base
 
         $mailbox = $this->state->mailbox;
         if (!$mailbox) {
-            $this->messenger->sendMessage(
-                $this->state->chatId,
-                static::MSG_ERROR
-            );
+            $this->replyError();
             return;
         }
         $mailbox->pwd = $password;
@@ -252,10 +249,7 @@ class MailboxAdd extends Base
         $mailbox = $this->state->mailbox;
         $fields = ['imapHost', 'imapPort', 'imapSocketType', 'smtpHost', 'smtpPort', 'smtpSocketType'];
         if ($mailbox === null || !in_array($field, $fields, true)) {
-            $this->messenger->sendMessage(
-                $this->state->chatId,
-                static::MSG_ERROR
-            );
+            $this->replyError();
             return;
         }
         $msg = '<b>' . $mailbox->email . ': ' . $field . '</b>' . PHP_EOL;

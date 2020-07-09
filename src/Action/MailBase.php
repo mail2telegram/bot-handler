@@ -41,4 +41,9 @@ abstract class MailBase
         }
         return $mailbox;
     }
+
+    protected function replyError($chatId): void
+    {
+        $this->messenger->sendMessage($chatId, static::MSG_ERROR);
+    }
 }

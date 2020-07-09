@@ -28,20 +28,9 @@ trait SendTrait
             }
         } catch (Throwable $e) {
             $this->logger->error((string) $e);
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
         $this->messenger->sendMessage($this->state->chatId, $result ? 'Отправлено' : 'Ошибка');
-    }
-
-    /**
-     * @suppress PhanUndeclaredConstantOfClass
-     */
-    protected function sendErrorHasOccurred(): void
-    {
-        $this->messenger->sendMessage(
-            $this->state->chatId,
-            static::MSG_ERROR,
-        );
     }
 }

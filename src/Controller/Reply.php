@@ -27,7 +27,7 @@ class Reply extends Base
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account) {
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
 
@@ -37,7 +37,7 @@ class Reply extends Base
         preg_match('/(.+)Date:/sm', $update['message']['reply_to_message']['text'], $matches3);
 
         if (!isset($matches[1], $matches2[2])) {
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
 
@@ -48,7 +48,7 @@ class Reply extends Base
 
         $mailbox = $this->accountManager->mailboxGet($account, $from);
         if ($mailbox === null) {
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
 

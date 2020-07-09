@@ -69,4 +69,9 @@ abstract class Base
             )
         );
     }
+
+    protected function replyError(): void
+    {
+        $this->messenger->sendMessage($this->state->chatId, static::MSG_ERROR);
+    }
 }

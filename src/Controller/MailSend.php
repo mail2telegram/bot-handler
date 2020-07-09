@@ -81,14 +81,14 @@ class MailSend extends Base
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account) {
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
 
         $mailboxString = &$update['message']['text'];
         $mailbox = $this->accountManager->mailboxGet($account, $mailboxString);
         if (!$mailbox) {
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
 
@@ -116,13 +116,13 @@ class MailSend extends Base
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account) {
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
 
         $mailbox = $this->accountManager->mailboxGet($account, $this->state->draftEmail->from);
         if ($mailbox === null) {
-            $this->sendErrorHasOccurred();
+            $this->replyError();
             return;
         }
 

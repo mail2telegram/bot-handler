@@ -21,6 +21,6 @@ class MailSeen extends MailBase
             $this->messenger->editMessageReplyMarkup($chatId, $msgId, $replyMarkup);
             return;
         }
-        $this->messenger->sendMessage($chatId, static::MSG_ERROR);
+        $this->replyError($chatId);
     }
 }

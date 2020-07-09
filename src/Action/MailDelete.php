@@ -14,6 +14,6 @@ class MailDelete extends MailBase
             $this->messenger->deleteMessage($chatId, $callback['message']['message_id']);
             return;
         }
-        $this->messenger->sendMessage($chatId, static::MSG_ERROR);
+        $this->replyError($chatId);
     }
 }

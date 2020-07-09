@@ -17,6 +17,6 @@ class MailSpam extends MailBase
             $this->messenger->sendMessage($chatId, static::MSG_SUCCESS);
             return;
         }
-        $this->messenger->sendMessage($chatId, static::MSG_ERROR);
+        $this->replyError($chatId);
     }
 }
