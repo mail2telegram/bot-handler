@@ -55,13 +55,21 @@ class Handler
         $messageText = &$update['message']['text'];
         $messageText = trim($messageText);
 
+        $isGroupChat = isset($update['message']['chat']['type'])
+            && $update['message']['chat']['type'] === 'group';
+
         $isBotCommand = isset($update['message']['entities'][0]['type'])
             && $update['message']['entities'][0]['type'] === 'bot_command';
 
         $state = $this->stateManager->get($chatId);
 
         if ($isBotCommand) {
-            $handler = static::COMMANDS[$messageText] ?? Controller\Help::class;
+            $botLink = '@' . App::get('botName');
+            if ($isGroupChat && !strpos($messageText, $botLink)) {
+                return;
+            }
+            $command = str_replace($botLink, '', $messageText);
+            $handler = static::COMMANDS[$command] ?? Controller\Help::class;
             $state->handler = $handler;
             $state->action = '';
         } elseif (

@@ -27,9 +27,14 @@ abstract class MailBase
         $this->imapClient = $imapClient;
     }
 
+    protected function getChatId(array $callback): int
+    {
+        return $callback['message']['chat']['id'];
+    }
+
     protected function getEmailAccountOrReply(array $callback, string $email): ?Email
     {
-        $chatId = $callback['from']['id'];
+        $chatId = $callback['message']['chat']['id'];
         $account = $this->accountManager->load($chatId);
         if (!$account || !$account->emails) {
             $this->messenger->sendMessage($chatId, static::MSG_NO_MAILBOXES);

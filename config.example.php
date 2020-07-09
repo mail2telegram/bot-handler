@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'botName' => 'MailProxyTestBot',
     'logLevel' => 'debug',
     'cryptoKey' => 'XXX',
     'telegramToken' => getenv('TELEGRAM_TOKEN') ?: 'XXX',

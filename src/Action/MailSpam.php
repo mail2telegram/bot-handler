@@ -8,7 +8,7 @@ class MailSpam extends MailBase
 
     public function __invoke(array $callback, string $email, int $mailId)
     {
-        $chatId = $callback['from']['id'];
+        $chatId = $this->getChatId($callback);
         if (!$mailbox = $this->getEmailAccountOrReply($callback, $email)) {
             return;
         }
