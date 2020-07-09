@@ -112,6 +112,20 @@ class TelegramClient implements MessengerInterface
             foreach ($keyboardsList as $index => $keyboard) {
                 if ($keyboard['text'] === $key) {
                     $keyboardsList[$index] = $newBtn;
+                    return;
+                }
+            }
+        }
+        unset($keyboardsList);
+    }
+
+    public function deleteMarkupBtn(array &$replyMarkup, string $key): void
+    {
+        foreach ($replyMarkup as &$keyboardsList) {
+            foreach ($keyboardsList as $index => $keyboard) {
+                if ($keyboard['text'] === $key) {
+                    unset($keyboardsList[$index]);
+                    return;
                 }
             }
         }

@@ -22,8 +22,9 @@ trait SendTrait
      * @param $subject
      * @param $msg
      * @suppress PhanUndeclaredMethod
+     * @return bool
      */
-    protected function send($mailboxFrom, $to, $subject, $msg): void
+    protected function send($mailboxFrom, $to, $subject, $msg): bool
     {
         try {
             $result = App::get(SmtpClient::class)->send($mailboxFrom, $to, $subject, $msg);
@@ -36,8 +37,9 @@ trait SendTrait
         } catch (Throwable $e) {
             $this->logger->error((string) $e);
             $this->replyError();
-            return;
+            return false;
         }
         $this->messenger->sendMessage($this->state->chatId, $result ? 'Отправлено' : 'Ошибка');
+        return $result;
     }
 }

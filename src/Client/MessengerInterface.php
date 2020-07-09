@@ -11,4 +11,6 @@ interface MessengerInterface
     public function editMessageReplyMarkup(int $chatId, int $messageId, array $replyMarkup): bool;
 
     public function replaceMarkupBtn(array &$replyMarkup, string $key, array $newBtn): void;
+
+    public function deleteMarkupBtn(array &$replyMarkup, string $key): void;
 }

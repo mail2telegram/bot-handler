@@ -53,6 +53,12 @@ class Reply extends Base
         }
 
         $msg = &$update['message']['text'];
-        $this->send($mailbox, $toMail, 'Re: ' . $subject, $msg);
+        if ($this->send($mailbox, $toMail, 'Re: ' . $subject, $msg)) {
+            $replyMarkup = &$update['message']['reply_to_message']['reply_markup'];
+            $msgId = &$update['message']['reply_to_message']['message_id'];
+            $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], 'Spam');
+            $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], 'Delete');
+            $this->messenger->editMessageReplyMarkup($this->state->chatId, $msgId, $replyMarkup);
+        }
     }
 }
