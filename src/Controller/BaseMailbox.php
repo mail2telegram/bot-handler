@@ -6,7 +6,7 @@ namespace M2T\Controller;
 
 use M2T\AccountManager;
 use M2T\App;
-use M2T\Client\MessengerInterface;
+use M2T\Client\TelegramClient;
 use M2T\Model\Account;
 use M2T\State;
 
@@ -17,12 +17,12 @@ abstract class BaseMailbox
     protected const MSG_ERROR = 'Error';
 
     protected State $state;
-    protected MessengerInterface $messenger;
+    protected TelegramClient $messenger;
     protected AccountManager $accountManager;
 
     public function __construct(
         State $state,
-        MessengerInterface $messenger,
+        TelegramClient $messenger,
         AccountManager $accountManager
     ) {
         $this->state = $state;

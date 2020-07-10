@@ -65,6 +65,5 @@ return [
         return $connect;
     },
     AMQPChannel::class => fn($c) => $c->get(AMQPStreamConnection::class)->channel(),
-    MessengerInterface::class => fn($c) => $c->get(TelegramClient::class),
     MailConfigClientInterface::class => fn($c) => $c->get(MailConfigClient::class),
 ];

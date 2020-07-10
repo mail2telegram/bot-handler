@@ -4,8 +4,8 @@ namespace M2T\Controller;
 
 use M2T\AccountManager;
 use M2T\Client\ImapClient;
-use M2T\Client\MessengerInterface;
 use M2T\Client\SmtpClient;
+use M2T\Client\TelegramClient;
 use M2T\Model\Email;
 use M2T\State;
 
@@ -14,7 +14,7 @@ abstract class BaseMail extends BaseMailbox
     protected const MSG_SENT = 'Отправлено';
 
     protected State $state;
-    protected MessengerInterface $messenger;
+    protected TelegramClient $messenger;
     protected AccountManager $accountManager;
     protected SmtpClient $smtpClient;
     protected ImapClient $imapClient;
@@ -22,7 +22,7 @@ abstract class BaseMail extends BaseMailbox
     /** @noinspection MagicMethodsValidityInspection PhpMissingParentConstructorInspection */
     public function __construct(
         State $state,
-        MessengerInterface $messenger,
+        TelegramClient $messenger,
         AccountManager $accountManager,
         SmtpClient $smtpClient,
         ImapClient $imapClient

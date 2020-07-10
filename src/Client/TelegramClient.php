@@ -10,7 +10,7 @@ use M2T\App;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-class TelegramClient implements MessengerInterface
+class TelegramClient
 {
     protected const BASE_URL = 'https://api.telegram.org/bot';
     protected const FILE_URL = 'https://api.telegram.org/file/bot<token>/<file_path>';
