@@ -3,7 +3,6 @@
 use M2T\Client\MailConfigClient;
 use M2T\Client\MailConfigClientInterface;
 use M2T\Client\MessengerInterface;
-use M2T\Client\TelegramClient;
 use M2T\Interfaces\ICrypto;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;

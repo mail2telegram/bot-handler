@@ -4,7 +4,7 @@ namespace M2T\Action;
 
 use M2T\AccountManager;
 use M2T\Client\ImapClient;
-use M2T\Client\MessengerInterface;
+use M2T\Client\TelegramClient;
 use M2T\Model\Email;
 
 abstract class MailBase
@@ -15,12 +15,12 @@ abstract class MailBase
     protected const MSG_MAILBOX_NOT_FOUND = 'Email address not found in account';
     protected const MSG_ERROR = 'Error';
 
-    protected MessengerInterface $messenger;
+    protected TelegramClient $messenger;
     protected AccountManager $accountManager;
     protected ImapClient $imapClient;
 
     public function __construct(
-        MessengerInterface $messenger,
+        TelegramClient $messenger,
         AccountManager $accountManager,
         ImapClient $imapClient
     ) {
