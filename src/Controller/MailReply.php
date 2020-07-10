@@ -11,9 +11,7 @@ class MailReply extends BaseMail
 
     public function actionIndex(array $update): void
     {
-        $account = $this->accountManager->load($this->state->chatId);
-        if (!$account) {
-            $this->replyError();
+        if (!$account = $this->getAccountOrReply()) {
             return;
         }
 
