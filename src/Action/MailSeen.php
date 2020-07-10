@@ -26,4 +26,3 @@ class MailSeen extends MailBase
         $this->replyError($callback['id']);
     }
 }
-
