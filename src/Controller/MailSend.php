@@ -19,7 +19,7 @@ class MailSend extends BaseMail
     protected const ACTION_INSERT_EMAIL_ACCOUNT = 'actionInsertEmailAccount';
     protected const ACTION_INSERT_TO = 'actionInsertTo';
     protected const ACTION_INSERT_SUBJECT = 'actionInsertSubject';
-    protected const ACTION_INSERT_MSG_AND_SEND = 'actionSend';
+    public const ACTION_INSERT_MSG_AND_SEND = 'actionSend';
 
     public function actionIndex(): void
     {
@@ -84,7 +84,7 @@ class MailSend extends BaseMail
             $this->setState(static::ACTION_INSERT_TO);
             return;
         }
-        $this->state->draftEmail->to = $update['message']['text'];
+        $this->state->draftEmail->to = [['address' => $update['message']['text']]];
         $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_SUBJECT);
         $this->setState(static::ACTION_INSERT_SUBJECT);
     }
@@ -110,14 +110,8 @@ class MailSend extends BaseMail
             return;
         }
 
-        $message = '';
-        $attachment = [];
-        $this->parseMessageAndAttachment($update, $message, $attachment);
-
-        $subject = $this->state->draftEmail->subject;
-        $to = $this->state->draftEmail->to;
+        $this->parseMessageAndAttachment($update, $this->state->draftEmail);
+        $this->send($mailbox, $this->state->draftEmail);
         $this->state->draftEmail = null;
-
-        $this->send($mailbox, $to, $subject, $message, $attachment);
     }
 }

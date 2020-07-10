@@ -2,6 +2,7 @@
 
 namespace M2T\Client;
 
+use M2T\Model\DraftEmail;
 use M2T\Model\Email;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -24,7 +25,7 @@ class SmtpClient
         $this->mailer->SMTPDebug = SMTP::DEBUG_OFF;
     }
 
-    public function send(Email $mailAccount, string $to, string $subject, string $text, array $attachment = []): bool
+    public function send(Email $mailAccount, DraftEmail $email): bool
     {
         $this->mailer->Host = $mailAccount->smtpHost;
         $this->mailer->Port = $mailAccount->smtpPort;
@@ -32,16 +33,21 @@ class SmtpClient
         $this->mailer->Username = explode('@', $mailAccount->email)[0];
         $this->mailer->Password = $mailAccount->getPwd();
 
-        $this->mailer->Subject = $subject;
-        $this->mailer->Body = $text ?: ' ';
+        $this->mailer->Subject = $email->subject;
+        $this->mailer->Body = $email->message ?: ' ';
 
         try {
-            if ($attachment && !$this->mailer->addStringAttachment($attachment['file'], $attachment['fileName'])) {
+            if (
+                $email->attachment
+                && !$this->mailer->addStringAttachment($email->attachment['file'], $email->attachment['fileName'])
+            ) {
                 return false;
             }
 
             $this->mailer->setFrom($mailAccount->email);
-            $this->mailer->addAddress($to);
+            foreach ($email->to as $address) {
+                $this->mailer->addAddress($address['address']);
+            }
 
             $result = $this->mailer->send();
             if (!$result) {

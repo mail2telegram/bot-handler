@@ -6,6 +6,7 @@ use M2T\AccountManager;
 use M2T\Client\ImapClient;
 use M2T\Client\SmtpClient;
 use M2T\Client\TelegramClient;
+use M2T\Model\DraftEmail;
 use M2T\Model\Email;
 use M2T\State;
 
@@ -34,9 +35,9 @@ abstract class BaseMail extends BaseMailbox
         $this->imapClient = $imapClient;
     }
 
-    protected function send(Email $mailboxFrom, string $to, string $subject, string $msg, array $attachment = []): bool
+    protected function send(Email $mailAccount, DraftEmail $email): bool
     {
-        $result = $this->smtpClient->send($mailboxFrom, $to, $subject, $msg, $attachment);
+        $result = $this->smtpClient->send($mailAccount, $email);
         if (!$result) {
             $this->replyError();
             return false;
@@ -44,26 +45,20 @@ abstract class BaseMail extends BaseMailbox
 
         // Gmail при отправке по SMTP сам добавляет письмо в отправленные.
         // А Яндекс нет. В крайнем случае будет добавлено дважды.
-        if ($mailboxFrom->smtpHost !== 'smtp.gmail.com') {
+        if ($mailAccount->smtpHost !== 'smtp.gmail.com') {
             // @todo add $attachment
-            $this->imapClient->appendToSent($mailboxFrom, $to, $subject, $msg);
+            $this->imapClient->appendToSent($mailAccount, $email);
         }
 
         $this->messenger->sendMessage($this->state->chatId, static::MSG_SENT);
         return true;
     }
 
-    /**
-     * Парсит входящее сообщение, извлекая из него содержание сообщения, и при наличии, фото либо документ
-     * @param array  $update
-     * @param string $message
-     * @param array  $attachment
-     */
-    protected function parseMessageAndAttachment(array $update, string &$message, array &$attachment): void
+    protected function parseMessageAndAttachment(array $update, DraftEmail $email): void
     {
-        $message = $update['message']['text'] ?? '';
-        $message = $update['message']['caption'] ?? $message;
-        $attachment = [];
+        $email->message = $update['message']['text'] ?? '';
+        $email->message = $update['message']['caption'] ?? $email->message;
+        $email->attachment = [];
 
         $fileName = '';
         $fileContent = '';
@@ -86,7 +81,7 @@ abstract class BaseMail extends BaseMailbox
                 return;
             }
             if ($fileContent) {
-                $attachment = ['file' => $fileContent, 'fileName' => $fileName];
+                $email->attachment = ['file' => $fileContent, 'fileName' => $fileName];
             }
         }
     }

@@ -7,10 +7,10 @@ class MailSpam extends MailBase
     public const NAME = 'spam';
     protected const MSG_SUCCESS = 'Moved to Spam folder';
 
-    public function __invoke(array $callback, string $email, int $mailId)
+    public function __invoke(array $callback, string $emailHash, int $mailId)
     {
         $chatId = $this->getChatId($callback);
-        if (!$mailbox = $this->getEmailAccountOrReply($callback, $email)) {
+        if (!$mailbox = $this->getEmailAccountOrReply($callback, $emailHash)) {
             return;
         }
         if ($this->imapClient->moveToSpam($mailbox, $mailId)) {

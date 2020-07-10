@@ -8,6 +8,7 @@ use BaseTester;
 use Codeception\Test\Unit;
 use M2T\App;
 use M2T\Client\SmtpClient;
+use M2T\Model\DraftEmail;
 use M2T\Model\Email;
 use PHPMailer\PHPMailer\PHPMailer;
 use Psr\Log\LoggerInterface;
@@ -42,8 +43,8 @@ class SmtpClientTest extends Unit
     public function testSend(Email $mailAccount, bool $expected): void
     {
         $client = new SmtpClient(App::get(LoggerInterface::class), new PHPMailer());
-        $to = $mailAccount->email;
-        $result = $client->send($mailAccount, $to, 'test', 'test');
+        $email = new DraftEmail($mailAccount->email, [['address' => $mailAccount->email]], 'test', 'test');
+        $result = $client->send($mailAccount, $email);
         static::assertSame($expected, $result);
     }
 
@@ -58,8 +59,8 @@ class SmtpClientTest extends Unit
             return;
         }
         $client = new SmtpClient(App::get(LoggerInterface::class), new PHPMailer());
-        $to = $mailAccount->email;
-        $result = $client->send($mailAccount, $to, '', '');
+        $email = new DraftEmail($mailAccount->email, [['address' => $mailAccount->email]], '', '');
+        $result = $client->send($mailAccount, $email);
         static::assertSame($expected, $result);
     }
 }

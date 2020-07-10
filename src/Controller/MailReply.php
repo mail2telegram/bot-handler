@@ -4,6 +4,7 @@ namespace M2T\Controller;
 
 use M2T\Action\MailDelete;
 use M2T\Action\MailSpam;
+use M2T\Model\DraftEmail;
 
 class MailReply extends BaseMail
 {
@@ -16,30 +17,30 @@ class MailReply extends BaseMail
         }
 
         $matches = $matches2 = $matches3 = [];
-        preg_match('/^To: <(.+)>/m', $update['message']['reply_to_message']['text'], $matches);
-        preg_match('/^From:(.+)<(.+)>/m', $update['message']['reply_to_message']['text'], $matches2);
+
+        preg_match('/^Email: <(.+)>/m', $update['message']['reply_to_message']['text'], $matches);
+        preg_match('/^ReplyTo:.+<(.+)>/m', $update['message']['reply_to_message']['text'], $matches2);
         preg_match('/(.+)Date:/sm', $update['message']['reply_to_message']['text'], $matches3);
 
-        if (!isset($matches[1], $matches2[2])) {
+        if (!isset($matches[1], $matches2[1])) {
             $this->replyError();
             return;
         }
 
-        $from = $matches[1];
-        $toMail = $matches2[2];
-        $subject = $matches3[1] ?? '';
+        $draftEmail = new DraftEmail();
+        $draftEmail->from = $matches[1];
+        $draftEmail->to =  [['address' => $matches2[1]]];
+        $draftEmail->subject = 'Re: ' . ($matches3[1] ?? '');
 
-        $mailbox = $this->accountManager->mailboxGet($account, $from);
+        $mailbox = $this->accountManager->mailboxGet($account, $draftEmail->from);
         if ($mailbox === null) {
             $this->replyError();
             return;
         }
 
-        $message = '';
-        $attachment = [];
-        $this->parseMessageAndAttachment($update, $message, $attachment);
+        $this->parseMessageAndAttachment($update, $draftEmail);
 
-        if ($this->send($mailbox, $toMail, 'Re: ' . $subject, $message, $attachment)) {
+        if ($this->send($mailbox, $draftEmail)) {
             $replyMarkup = &$update['message']['reply_to_message']['reply_markup'];
             $msgId = &$update['message']['reply_to_message']['message_id'];
             $this->messenger->deleteMarkupBtn($replyMarkup['inline_keyboard'], MailSpam::NAME);

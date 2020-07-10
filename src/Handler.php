@@ -21,6 +21,8 @@ class Handler
         Action\MailSpam::NAME => Action\MailSpam::class,
         Action\MailSeen::NAME => Action\MailSeen::class,
         Action\MailUnseen::NAME => Action\MailUnseen::class,
+        Action\MailReply::NAME => Action\MailReply::class,
+        Action\MailReplyAll::NAME => Action\MailReplyAll::class,
     ];
 
     protected LoggerInterface $logger;
@@ -44,7 +46,7 @@ class Handler
             isset($update['callback_query']['data'], $update['callback_query']['message']['from']['is_bot'])
             && $update['callback_query']['message']['from']['is_bot'] === true
         ) {
-            $this->handleCallback($update);
+            $this->handleCallbackMail($update);
             return;
         }
     }
@@ -75,7 +77,7 @@ class Handler
         } elseif (
             isset($update['message']['reply_to_message']['text'])
             && $update['message']['reply_to_message']['from']['is_bot'] === true
-            && preg_match('/^To: <(.+)>/m', $update['message']['reply_to_message']['text'])
+            && preg_match('/^Email: <(.+)>/m', $update['message']['reply_to_message']['text'])
         ) {
             $handler = Controller\MailReply::class;
         } else {
@@ -102,23 +104,12 @@ class Handler
         $this->logger->debug('State: ', (array) $state);
     }
 
-    public function handleCallback(array $update): void
+    public function handleCallbackMail(array $update): void
     {
-        $matches = [];
-        if (
-            preg_match('/^To: <(.+)>/m', $update['callback_query']['message']['text'], $matches)
-            && !empty($matches[1])
-        ) {
-            $this->handleCallbackMail($update['callback_query'], $matches[1]);
-        }
-    }
-
-    public function handleCallbackMail(array $callback, string $email): void
-    {
-        [$action, $mailId] = explode(':', $callback['data']);
+        [$action, $mailId, $emailHash] = explode(':', $update['callback_query']['data']);
         if (!isset(static::CALLBACKS[$action])) {
             return;
         }
-        App::build(static::CALLBACKS[$action])($callback, $email, $mailId);
+        App::build(static::CALLBACKS[$action])($update['callback_query'], $emailHash, $mailId);
     }
 }

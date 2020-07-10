@@ -2,6 +2,7 @@
 
 namespace M2T\Client;
 
+use M2T\Model\DraftEmail;
 use M2T\Model\Email;
 use Psr\Log\LoggerInterface;
 
@@ -101,6 +102,18 @@ final class ImapClient
         return $result ?: false;
     }
 
+    private function imapHeaderInfo($stream, int $mailId): array
+    {
+        $msgNo = imap_msgno($stream, $mailId);
+        $this->debugErrors();
+        if (!$msgNo) {
+            return [];
+        }
+        $result = @imap_headerinfo($stream, $msgNo);
+        $this->debugErrors();
+        return (array) $result;
+    }
+
     private function getMailbox(Email $mailAccount, string $folder = self::FOLDER_INBOX): string
     {
         return "{{$mailAccount->imapHost}:{$mailAccount->imapPort}/imap/{$mailAccount->imapSocketType}}$folder";
@@ -127,17 +140,35 @@ final class ImapClient
         return $result;
     }
 
-    public function appendToSent(Email $mailAccount, string $to, string $subject, string $text): bool
+    public function headerInfo(Email $mailAccount, int $mailId): array
+    {
+        $mailbox = $this->getMailbox($mailAccount, '');
+        if (!$stream = $this->imapOpen($mailAccount, $mailbox)) {
+            return [];
+        }
+        $result = $this->imapHeaderInfo($stream, $mailId);
+        imap_close($stream);
+        return $result;
+    }
+
+    public function appendToSent(Email $mailAccount, DraftEmail $email): bool
     {
         $folder = $this->getFolder($mailAccount->imapHost, self::FOLDER_SENT);
         $mailbox = $this->getMailbox($mailAccount, $folder);
         if (!$stream = $this->imapOpen($mailAccount, $mailbox)) {
             return false;
         }
+
+        $to = '';
+        foreach ($email->to as $address) {
+            $to = $address['address'] . ',';
+        }
+        trim($to, ',');
+
         $msg = "From: {$mailAccount->email}"
             . "\r\nTo: $to"
-            . "\r\nSubject: $subject"
-            . "\r\n\r\n$text\r\n";
+            . "\r\nSubject: $email->subject"
+            . "\r\n\r\n$email->message\r\n";
         $result = $this->imapAppend($stream, $mailbox, $msg);
         imap_close($stream);
         return $result;
@@ -175,12 +206,6 @@ final class ImapClient
     {
         $folder = $this->getFolder($mailAccount->imapHost, self::FOLDER_TRASH);
         return $this->moveTo($mailAccount, $mailId, $folder);
-    }
-
-    public function restoreFromTrash(Email $mailAccount, int $mailId): bool
-    {
-        $trash = $this->getFolder($mailAccount->imapHost, self::FOLDER_TRASH);
-        return $this->moveTo($mailAccount, $mailId, self::FOLDER_INBOX, $trash);
     }
 
     private function setFlag(Email $mailAccount, int $mailId, string $flag): bool

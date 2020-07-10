@@ -20,13 +20,4 @@
         <exclude name="StaticAccess"/>
         <exclude name="IfStatementAssignment"/>
     </rule>
-    <rule ref="rulesets/cleancode.xml/StaticAccess">
-        <properties>
-            <property name="exceptions">
-                <value>
-                    \M2T\App,
-                </value>
-            </property>
-        </properties>
-    </rule>
 </ruleset>

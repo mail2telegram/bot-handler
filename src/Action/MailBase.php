@@ -42,7 +42,7 @@ abstract class MailBase
             $this->messenger->answerCallbackQuery($callback['id'], static::MSG_NO_MAILBOXES);
             return null;
         }
-        if (!$mailbox = $this->accountManager->mailboxGet($account, $email)) {
+        if (!$mailbox = $this->accountManager->mailboxGetByHash($account, $email)) {
             $this->messenger->answerCallbackQuery($callback['id'], static::MSG_MAILBOX_NOT_FOUND);
             return null;
         }

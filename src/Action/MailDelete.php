@@ -7,10 +7,10 @@ class MailDelete extends MailBase
     public const NAME = 'delete';
     protected const MSG_SUCCESS = 'Deleted';
 
-    public function __invoke(array $callback, string $email, int $mailId)
+    public function __invoke(array $callback, string $emailHash, int $mailId)
     {
         $chatId = $this->getChatId($callback);
-        if (!$mailbox = $this->getEmailAccountOrReply($callback, $email)) {
+        if (!$mailbox = $this->getEmailAccountOrReply($callback, $emailHash)) {
             return;
         }
         if ($this->imapClient->moveToTrash($mailbox, $mailId)) {

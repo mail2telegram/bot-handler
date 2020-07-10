@@ -6,6 +6,7 @@ use BaseTester;
 use Codeception\Test\Unit;
 use M2T\App;
 use M2T\Client\ImapClient;
+use M2T\Model\DraftEmail;
 use M2T\Model\Email;
 use Psr\Log\LoggerInterface;
 
@@ -42,8 +43,8 @@ class ImapClientTest extends Unit
             return;
         }
         $client = new ImapClient(App::get(LoggerInterface::class));
-        $to = $mailAccount->email;
-        $result = $client->appendToSent($mailAccount, $to, 'test', 'test');
+        $email = new DraftEmail($mailAccount->email, [['address' => $mailAccount->email]], 'test', 'test');
+        $result = $client->appendToSent($mailAccount, $email);
         static::assertSame($expected, $result);
     }
 

@@ -6,10 +6,10 @@ class MailUnseen extends MailBase
 {
     public const NAME = 'unseen';
 
-    public function __invoke(array $callback, string $email, int $mailId)
+    public function __invoke(array $callback, string $emailHash, int $mailId)
     {
         $chatId = $this->getChatId($callback);
-        if (!$mailbox = $this->getEmailAccountOrReply($callback, $email)) {
+        if (!$mailbox = $this->getEmailAccountOrReply($callback, $emailHash)) {
             return;
         }
         if ($this->imapClient->flagSeenUnset($mailbox, $mailId)) {
@@ -18,7 +18,7 @@ class MailUnseen extends MailBase
             $this->messenger->replaceMarkupBtn(
                 $replyMarkup['inline_keyboard'],
                 static::NAME,
-                ['text' => 'Mark as read', 'callback_data' => MailSeen::NAME . ':' . $mailId]
+                ['text' => 'Mark as read', 'callback_data' => MailSeen::NAME . ':' . $mailId . ':' . $emailHash]
             );
             $this->messenger->editMessageReplyMarkup($chatId, $msgId, $replyMarkup);
             return;
