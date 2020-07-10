@@ -28,11 +28,13 @@ class MailboxDelete extends BaseMailbox
 
     public function actionCheck(array $update): void
     {
+        if (!$account = $this->getAccountOrReply()) {
+            return;
+        }
+
         $msg = &$update['message'];
         $emailString = $msg['text'];
-        $account = $this->accountManager->load($this->state->chatId);
-
-        if (!$account || !$account->emails || !$this->accountManager->mailboxExist($account, $emailString)) {
+        if (!$this->accountManager->mailboxExist($account, $emailString)) {
             $this->sendErrorEmailNotFound($emailString);
             return;
         }

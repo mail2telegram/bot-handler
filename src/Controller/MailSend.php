@@ -9,21 +9,29 @@ use M2T\Model\DraftEmail;
 
 class MailSend extends BaseMail
 {
-    protected const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
     protected const MSG_CHOOSE_EMAIL = 'Выберите email с которого будем отправлять или введите если не отображен';
-    protected const MSG_INSERT_TITLE = 'Введите заголовок:';
+    protected const MSG_INSERT_SUBJECT = 'Введите заголовок:';
     protected const MSG_INSERT_TO = 'Укажите кому:';
     protected const MSG_INSERT_MESSAGE = 'Введите текст сообщения:';
     protected const MSG_ERROR = 'Произошла ошибка во время отправки';
+    protected const MSG_INCORRECT_EMAIL = 'Вы ввели некорректный email. Укажите кому:';
 
-    protected const ACTION_INSERT_TITLE = 'actionInsertTitle';
+    protected const ACTION_INSERT_EMAIL_ACCOUNT = 'actionInsertEmailAccount';
     protected const ACTION_INSERT_TO = 'actionInsertTo';
-    protected const ACTION_INSERT_MESSAGE = 'actionInsertMessage';
-    protected const ACTION_SEND = 'actionSend';
+    protected const ACTION_INSERT_SUBJECT = 'actionInsertSubject';
+    protected const ACTION_INSERT_MSG_AND_SEND = 'actionSend';
 
     public function actionIndex(): void
     {
         if (!$account = $this->getAccountOrReply()) {
+            return;
+        }
+
+        if (count($account->emails) === 1) {
+            $this->state->draftEmail = new DraftEmail();
+            $this->state->draftEmail->from = $account->emails[0]->email;
+            $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_TO);
+            $this->setState(static::ACTION_INSERT_TO);
             return;
         }
 
@@ -35,33 +43,20 @@ class MailSend extends BaseMail
             $list[] = [$email->email];
         }
 
-        if (count($account->emails) === 1) {
-            $this->state->draftEmail = new DraftEmail();
-            $this->state->draftEmail->from = $account->emails[0]->email;
-            $this->sendInsertTitleDialog();
-            return;
-        }
-
-        if (count($account->emails)) {
-            $this->messenger->sendMessage(
-                $this->state->chatId,
-                static::MSG_CHOOSE_EMAIL,
-                json_encode(
-                    [
-                        'keyboard' => $list,
-                        'one_time_keyboard' => true,
-                    ]
-                )
-            );
-            $this->setState(static::ACTION_INSERT_TITLE);
-            return;
-        }
-
-        $msg = static::MSG_CHOOSE_EMAIL . PHP_EOL . static::MSG_EMPTY_LIST;
-        $this->messenger->sendMessage($this->state->chatId, $msg);
+        $this->messenger->sendMessage(
+            $this->state->chatId,
+            static::MSG_CHOOSE_EMAIL,
+            json_encode(
+                [
+                    'keyboard' => $list,
+                    'one_time_keyboard' => true,
+                ]
+            )
+        );
+        $this->setState(static::ACTION_INSERT_EMAIL_ACCOUNT);
     }
 
-    public function actionInsertTitle(array $update): void
+    public function actionInsertEmailAccount(array $update): void
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account) {
@@ -69,8 +64,7 @@ class MailSend extends BaseMail
             return;
         }
 
-        $mailboxString = &$update['message']['text'];
-        $mailbox = $this->accountManager->mailboxGet($account, $mailboxString);
+        $mailbox = $this->accountManager->mailboxGet($account, $update['message']['text']);
         if (!$mailbox) {
             $this->replyError();
             return;
@@ -79,24 +73,30 @@ class MailSend extends BaseMail
         $this->state->draftEmail = new DraftEmail();
         $this->state->draftEmail->from = $mailbox->email;
 
-        $this->sendInsertTitleDialog();
-    }
-
-    public function actionInsertTo($update): void
-    {
-        $this->state->draftEmail->subject = &$update['message']['text'];
         $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_TO);
-        $this->setState(static::ACTION_INSERT_MESSAGE);
+        $this->setState(static::ACTION_INSERT_TO);
     }
 
-    public function actionInsertMessage($update): void
+    public function actionInsertTo(array $update): void
     {
-        $this->state->draftEmail->to = &$update['message']['text'];
-        $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_MESSAGE);
-        $this->setState(static::ACTION_SEND);
+        if (!filter_var($update['message']['text'], FILTER_VALIDATE_EMAIL)) {
+            $this->messenger->sendMessage($this->state->chatId, static::MSG_INCORRECT_EMAIL);
+            $this->setState(static::ACTION_INSERT_TO);
+            return;
+        }
+        $this->state->draftEmail->to = $update['message']['text'];
+        $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_SUBJECT);
+        $this->setState(static::ACTION_INSERT_SUBJECT);
     }
 
-    public function actionSend($update): void
+    public function actionInsertSubject(array $update): void
+    {
+        $this->state->draftEmail->subject = $update['message']['text'];
+        $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_MESSAGE);
+        $this->setState(static::ACTION_INSERT_MSG_AND_SEND);
+    }
+
+    public function actionSend(array $update): void
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account) {
@@ -119,11 +119,5 @@ class MailSend extends BaseMail
         $this->state->draftEmail = null;
 
         $this->send($mailbox, $to, $subject, $message, $attachment);
-    }
-
-    protected function sendInsertTitleDialog(): void
-    {
-        $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_TITLE);
-        $this->setState(static::ACTION_INSERT_TO);
     }
 }

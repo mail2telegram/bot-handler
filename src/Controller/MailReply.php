@@ -9,7 +9,7 @@ class MailReply extends BaseMail
 {
     protected const MSG_ERROR = 'Произошла ошибка во время отправки';
 
-    public function actionIndex($update): void
+    public function actionIndex(array $update): void
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account) {
@@ -29,7 +29,6 @@ class MailReply extends BaseMail
 
         $from = $matches[1];
         $toMail = $matches2[2];
-        //$toName = $matches2[1]; // Can be used as name
         $subject = $matches3[1] ?? '';
 
         $mailbox = $this->accountManager->mailboxGet($account, $from);
