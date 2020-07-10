@@ -163,7 +163,7 @@ final class ImapClient
         foreach ($email->to as $address) {
             $to = $address['address'] . ',';
         }
-        trim($to, ',');
+        $to = rtrim($to, ',');
 
         $msg = "From: {$mailAccount->email}"
             . "\r\nTo: $to"
