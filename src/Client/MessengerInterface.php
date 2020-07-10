@@ -16,7 +16,7 @@ interface MessengerInterface
 
     public function deleteMarkupBtn(array &$replyMarkup, string $key): bool;
 
-    public function getFile($fileId, &$file, &$fileName): bool;
-
     public function sendChatAction(int $chatId, string $action): bool;
+
+    public function getFile(string $fileId, string &$fileName, string &$fileContent): bool;
 }

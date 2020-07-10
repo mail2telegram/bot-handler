@@ -5,9 +5,8 @@ namespace M2T\Controller;
 use M2T\Action\MailDelete;
 use M2T\Action\MailSpam;
 
-class MailReply extends Base
+class MailReply extends BaseMail
 {
-
     protected const MSG_ERROR = 'Произошла ошибка во время отправки';
 
     public function actionIndex($update): void

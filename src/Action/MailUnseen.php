@@ -21,7 +21,6 @@ class MailUnseen extends MailBase
                 ['text' => 'Mark as read', 'callback_data' => MailSeen::NAME . ':' . $mailId]
             );
             $this->messenger->editMessageReplyMarkup($chatId, $msgId, $replyMarkup);
-            $this->messenger->answerCallbackQuery($callback['id'], static::MSG_ERROR);
             return;
         }
         $this->replyError($callback['id']);

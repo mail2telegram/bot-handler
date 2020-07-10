@@ -4,7 +4,7 @@
 
 namespace M2T\Controller;
 
-class MailboxEdit extends Base
+class MailboxEdit extends BaseMailbox
 {
     protected const MSG_CHOOSE_EMAIL = 'Выберите email для редактирования, или введите если нет в списке';
     protected const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';

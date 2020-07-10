@@ -121,7 +121,7 @@ class TelegramClient implements MessengerInterface
         return (bool) $result;
     }
 
-    public function getFile($fileId, &$file, &$fileName): bool
+    public function getFile(string $fileId, string &$fileName, string &$fileContent): bool
     {
         $data = [
             'form_params' => [
@@ -129,17 +129,28 @@ class TelegramClient implements MessengerInterface
             ],
         ];
         $fileData = $this->execute('getFile', $data);
-
         if (!isset($fileData['file_path'])) {
             return false;
         }
 
-        $uri = str_replace(['<token>','<file_path>'], [App::get('telegramToken'), $fileData['file_path']], static::FILE_URL);
+        $uri = str_replace(
+            ['<token>', '<file_path>'],
+            [App::get('telegramToken'), $fileData['file_path']],
+            static::FILE_URL
+        );
 
-        $file = $this->client->request('GET', $uri)->getBody()->getContents();
+        try {
+            $fileContent = $this->client->request('GET', $uri)->getBody()->getContents();
+        } catch (Throwable $e) {
+            $this->logger->error('Telegram: ' . $e);
+            return false;
+        }
+
         $pathInfo = pathinfo($fileData['file_path']);
-        /** @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset */
-        $fileName = $pathInfo['filename'] . '.' . $pathInfo['extension'];
+        $fileName = $pathInfo['filename'];
+        if (isset($pathInfo['extension'])) {
+            $fileName .= '.' . $pathInfo['extension'];
+        }
         return true;
     }
 

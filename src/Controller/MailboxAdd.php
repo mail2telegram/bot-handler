@@ -13,12 +13,11 @@ use M2T\Client\SmtpClient;
 use M2T\Model\Account;
 use M2T\Model\Email;
 use M2T\State;
-use Psr\Log\LoggerInterface;
 
 /**
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
-class MailboxAdd extends Base
+class MailboxAdd extends BaseMailbox
 {
     protected const MSG_BTN_ACCEPT_AUTOCONFIG = 'Принять автоматические настройки';
     protected const MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG = 'Внести изменения';
@@ -55,10 +54,9 @@ class MailboxAdd extends Base
         State $state,
         MessengerInterface $messenger,
         AccountManager $accountManager,
-        MailConfigClientInterface $mailConfigClient,
-        LoggerInterface $logger
+        MailConfigClientInterface $mailConfigClient
     ) {
-        parent::__construct($state, $messenger, $accountManager, $logger);
+        parent::__construct($state, $messenger, $accountManager);
         $this->mailConfigClient = $mailConfigClient;
     }
 

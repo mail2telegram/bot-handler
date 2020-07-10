@@ -4,7 +4,7 @@
 
 namespace M2T\Controller;
 
-class MailboxDelete extends Base
+class MailboxDelete extends BaseMailbox
 {
     protected const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
     protected const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';

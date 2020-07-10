@@ -7,9 +7,8 @@ namespace M2T\Controller;
 use M2T\App;
 use M2T\Model\DraftEmail;
 
-class MailSend extends Base
+class MailSend extends BaseMail
 {
-
     protected const MSG_EMPTY_LIST = 'Не добавлено пока ни одного';
     protected const MSG_CHOOSE_EMAIL = 'Выберите email с которого будем отправлять или введите если не отображен';
     protected const MSG_INSERT_TITLE = 'Введите заголовок:';
