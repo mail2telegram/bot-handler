@@ -8,8 +8,8 @@ use M2T\AccountManager;
 use M2T\App;
 use M2T\Client\ImapClient;
 use M2T\Client\MailConfigClientInterface;
-use M2T\Client\MessengerInterface;
 use M2T\Client\SmtpClient;
+use M2T\Client\TelegramClient;
 use M2T\Model\Account;
 use M2T\Model\Email;
 use M2T\State;
@@ -17,7 +17,7 @@ use M2T\State;
 /**
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
-class MailboxAdd extends Base
+class MailboxAdd extends BaseMailbox
 {
     protected const MSG_BTN_ACCEPT_AUTOCONFIG = 'Принять автоматические настройки';
     protected const MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG = 'Внести изменения';
@@ -52,7 +52,7 @@ class MailboxAdd extends Base
 
     public function __construct(
         State $state,
-        MessengerInterface $messenger,
+        TelegramClient $messenger,
         AccountManager $accountManager,
         MailConfigClientInterface $mailConfigClient
     ) {

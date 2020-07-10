@@ -6,13 +6,17 @@ use M2T\Model\Email;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 class SmtpClient
 {
+    protected LoggerInterface $logger;
     protected PHPMailer $mailer;
 
-    public function __construct(PHPMailer $mailer)
+    public function __construct(LoggerInterface $logger, PHPMailer $mailer)
     {
+        $this->logger = $logger;
         $this->mailer = $mailer;
         $this->mailer->CharSet = 'UTF-8';
         $this->mailer->isSMTP();
@@ -20,15 +24,7 @@ class SmtpClient
         $this->mailer->SMTPDebug = SMTP::DEBUG_OFF;
     }
 
-    /**
-     * @param Email  $mailAccount
-     * @param string $to
-     * @param string $subject
-     * @param string $text
-     * @return bool
-     * @throws \PHPMailer\PHPMailer\Exception
-     */
-    public function send(Email $mailAccount, string $to, string $subject, string $text): bool
+    public function send(Email $mailAccount, string $to, string $subject, string $text, array $attachment = []): bool
     {
         $this->mailer->Host = $mailAccount->smtpHost;
         $this->mailer->Port = $mailAccount->smtpPort;
@@ -37,15 +33,24 @@ class SmtpClient
         $this->mailer->Password = $mailAccount->getPwd();
 
         $this->mailer->Subject = $subject;
-        $this->mailer->Body = $text;
+        $this->mailer->Body = $text ?: ' ';
 
-        $this->mailer->setFrom($mailAccount->email);
-        $this->mailer->addAddress($to);
-        $result = $this->mailer->send();
+        try {
+            if ($attachment && !$this->mailer->addStringAttachment($attachment['file'], $attachment['fileName'])) {
+                return false;
+            }
 
-        if (!$result) {
-            $this->mailer->Username = $mailAccount->email;
+            $this->mailer->setFrom($mailAccount->email);
+            $this->mailer->addAddress($to);
+
             $result = $this->mailer->send();
+            if (!$result) {
+                $this->mailer->Username = $mailAccount->email;
+                $result = $this->mailer->send();
+            }
+        } catch (Throwable $e) {
+            $this->logger->debug('SMTP: ' . $e);
+            return false;
         }
 
         return $result;

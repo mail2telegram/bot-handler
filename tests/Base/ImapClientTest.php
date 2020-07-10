@@ -51,7 +51,6 @@ class ImapClientTest extends Unit
      * @dataProvider providerMail
      * @param $mailAccount
      * @param $expected
-     * @noinspection PhpUndefinedFunctionInspection
      */
     protected function testFolderList(Email $mailAccount, bool $expected): void
     {

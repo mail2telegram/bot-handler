@@ -2,15 +2,15 @@
 
 namespace M2T\Controller;
 
-use M2T\Client\MessengerInterface;
+use M2T\Client\TelegramClient;
 use M2T\State;
 
 class Help
 {
     protected State $state;
-    protected MessengerInterface $messenger;
+    protected TelegramClient $messenger;
 
-    public function __construct(State $state, MessengerInterface $messenger)
+    public function __construct(State $state, TelegramClient $messenger)
     {
         $this->state = $state;
         $this->messenger = $messenger;

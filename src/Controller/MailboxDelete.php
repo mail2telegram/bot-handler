@@ -4,7 +4,7 @@
 
 namespace M2T\Controller;
 
-class MailboxDelete extends Base
+class MailboxDelete extends BaseMailbox
 {
     protected const MSG_CHOOSE_EMAIL = 'Выберите какой email удалить, или введите если нет в списке:';
     protected const MSG_EMAIL_NOT_FOUND = 'Email %email% не найден в вашем списке';
@@ -28,11 +28,13 @@ class MailboxDelete extends Base
 
     public function actionCheck(array $update): void
     {
+        if (!$account = $this->getAccountOrReply()) {
+            return;
+        }
+
         $msg = &$update['message'];
         $emailString = $msg['text'];
-        $account = $this->accountManager->load($this->state->chatId);
-
-        if (!$account || !$account->emails || !$this->accountManager->mailboxExist($account, $emailString)) {
+        if (!$this->accountManager->mailboxExist($account, $emailString)) {
             $this->sendErrorEmailNotFound($emailString);
             return;
         }

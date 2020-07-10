@@ -2,7 +2,7 @@
 
 namespace M2T\Controller;
 
-class MailboxList extends Base
+class MailboxList extends BaseMailbox
 {
     public function actionIndex(): void
     {

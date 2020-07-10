@@ -10,9 +10,10 @@ use M2T\App;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-class TelegramClient implements MessengerInterface
+class TelegramClient
 {
     protected const BASE_URL = 'https://api.telegram.org/bot';
+    protected const FILE_URL = 'https://api.telegram.org/file/bot<token>/<file_path>';
 
     protected LoggerInterface $logger;
     protected Client $client;
@@ -118,6 +119,50 @@ class TelegramClient implements MessengerInterface
         ];
         $result = $this->execute('editMessageReplyMarkup', $data);
         return (bool) $result;
+    }
+
+    public function getFile(string $fileId, string &$fileName, string &$fileContent): bool
+    {
+        $data = [
+            'form_params' => [
+                'file_id' => $fileId,
+            ],
+        ];
+        $fileData = $this->execute('getFile', $data);
+        if (!isset($fileData['file_path'])) {
+            return false;
+        }
+
+        $uri = str_replace(
+            ['<token>', '<file_path>'],
+            [App::get('telegramToken'), $fileData['file_path']],
+            static::FILE_URL
+        );
+
+        try {
+            $fileContent = $this->client->request('GET', $uri)->getBody()->getContents();
+        } catch (Throwable $e) {
+            $this->logger->error('Telegram: ' . $e);
+            return false;
+        }
+
+        $pathInfo = pathinfo($fileData['file_path']);
+        $fileName = $pathInfo['filename'];
+        if (isset($pathInfo['extension'])) {
+            $fileName .= '.' . $pathInfo['extension'];
+        }
+        return true;
+    }
+
+    public function sendChatAction(int $chatId, string $action): bool
+    {
+        $data = [
+            'form_params' => [
+                'chat_id' => $chatId,
+                'action' => $action,
+            ],
+        ];
+        return (bool) $this->execute('sendChatAction', $data);
     }
 
     public function replaceMarkupBtn(array &$replyMarkup, string $key, array $newBtn): bool
