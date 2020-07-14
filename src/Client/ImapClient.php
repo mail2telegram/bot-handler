@@ -36,10 +36,10 @@ final class ImapClient
     private function debugErrors(): void
     {
         if ($errors = imap_errors()) {
-            $this->logger->debug('Imap errors:', $errors);
+            $this->logger->warning('Imap errors:', $errors);
         }
         if ($errors = imap_alerts()) {
-            $this->logger->debug('Imap alerts:', $errors);
+            $this->logger->warning('Imap alerts:', $errors);
         }
     }
 

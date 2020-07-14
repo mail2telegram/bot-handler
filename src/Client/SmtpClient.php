@@ -55,7 +55,7 @@ class SmtpClient
                 $result = $this->mailer->send();
             }
         } catch (Throwable $e) {
-            $this->logger->debug('SMTP: ' . $e);
+            $this->logger->warning('SMTP: ' . $e);
             return false;
         }
 
