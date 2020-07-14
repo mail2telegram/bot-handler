@@ -3,8 +3,8 @@
 return [
     'botName' => 'MailProxyTestBot',
     'logLevel' => 'debug',
+    'telegramToken' => 'XXX',
     'cryptoKey' => 'XXX',
-    'telegramToken' => getenv('TELEGRAM_TOKEN') ?: 'XXX',
     'redis' => [
         'host' => 'm2t_redis',
     ],
