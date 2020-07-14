@@ -46,13 +46,15 @@ final class Worker
 
     public function loop(): void
     {
+        $this->channel->basic_qos(null, 1, null);
+        $this->channel->exchange_declare(App::get('queueExchange'), 'x-consistent-hash', false, true, false);
+
         $queue = $this->locator->lock();
         if (!$queue) {
             $this->logger->error('No available queue');
             return;
         }
-        $this->channel->basic_qos(null, 1, null);
-        $this->channel->exchange_declare(App::get('queueExchange'), 'x-consistent-hash', false, true, false);
+
         $this->channel->queue_declare($queue, false, true, false, false);
         $this->channel->queue_bind($queue, App::get('queueExchange'), App::get('queueRoutingKey'));
         $this->channel->basic_consume($queue, '', false, true, false, false, [$this, 'task']);
