@@ -2,8 +2,8 @@
 
 namespace M2T\Client;
 
-use M2T\Model\DraftEmail;
 use M2T\Model\Email;
+use M2T\Model\Mailbox;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
@@ -25,7 +25,7 @@ class SmtpClient
         $this->mailer->SMTPDebug = SMTP::DEBUG_OFF;
     }
 
-    public function send(Email $mailAccount, DraftEmail $email): bool
+    public function send(Mailbox $mailAccount, Email $email): bool
     {
         $this->mailer->Host = $mailAccount->smtpHost;
         $this->mailer->Port = $mailAccount->smtpPort;
@@ -62,7 +62,7 @@ class SmtpClient
         return $result;
     }
 
-    public function check(Email $mailAccount): bool
+    public function check(Mailbox $mailAccount): bool
     {
         $this->mailer->Host = $mailAccount->smtpHost;
         $this->mailer->Port = $mailAccount->smtpPort;

@@ -2,7 +2,7 @@
 
 namespace M2T\Model;
 
-class DraftEmail
+class Email
 {
     public string $from;
     public array $to;

@@ -7,8 +7,8 @@ use M2T\Client\ImapClient;
 use M2T\Client\SmtpClient;
 use M2T\Client\TelegramClient;
 use M2T\Model\Attachment;
-use M2T\Model\DraftEmail;
 use M2T\Model\Email;
+use M2T\Model\Mailbox;
 use M2T\State;
 
 abstract class BaseMail extends BaseMailbox
@@ -36,7 +36,7 @@ abstract class BaseMail extends BaseMailbox
         $this->imapClient = $imapClient;
     }
 
-    protected function send(Email $mailAccount, DraftEmail $email): bool
+    protected function send(Mailbox $mailAccount, Email $email): bool
     {
         $result = $this->smtpClient->send($mailAccount, $email);
         if (!$result) {
@@ -54,7 +54,7 @@ abstract class BaseMail extends BaseMailbox
         return true;
     }
 
-    protected function parseMessageAndAttachment(array $update, DraftEmail $email): void
+    protected function parseMessageAndAttachment(array $update, Email $email): void
     {
         $email->message = $update['message']['text'] ?? '';
         $email->message = $update['message']['caption'] ?? $email->message;

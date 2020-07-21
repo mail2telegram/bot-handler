@@ -3,7 +3,7 @@
 namespace M2T\Controller;
 
 use M2T\App;
-use M2T\Model\DraftEmail;
+use M2T\Model\Email;
 
 class MailSend extends BaseMail
 {
@@ -26,7 +26,7 @@ class MailSend extends BaseMail
         }
 
         if (count($account->emails) === 1) {
-            $this->state->draftEmail = new DraftEmail();
+            $this->state->draftEmail = new Email();
             $this->state->draftEmail->from = $account->emails[0]->email;
             $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_TO);
             $this->setState(static::ACTION_INSERT_TO);
@@ -66,7 +66,7 @@ class MailSend extends BaseMail
             return;
         }
 
-        $this->state->draftEmail = new DraftEmail();
+        $this->state->draftEmail = new Email();
         $this->state->draftEmail->from = $mailbox->email;
 
         $this->messenger->sendMessage($this->state->chatId, static::MSG_INSERT_TO);

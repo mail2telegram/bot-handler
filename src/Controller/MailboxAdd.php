@@ -9,7 +9,7 @@ use M2T\Client\MailConfigClientInterface;
 use M2T\Client\SmtpClient;
 use M2T\Client\TelegramClient;
 use M2T\Model\Account;
-use M2T\Model\Email;
+use M2T\Model\Mailbox;
 use M2T\State;
 
 /**
@@ -101,7 +101,7 @@ class MailboxAdd extends BaseMailbox
         }
 
         $data = $this->mailConfigClient->get(explode('@', $emailString)[1]);
-        $mailbox = new Email(
+        $mailbox = new Mailbox(
             $emailString,
             '',
             $data['imapHost'] ?? '',

@@ -3,8 +3,8 @@
 namespace M2T\Client;
 
 use finfo;
-use M2T\Model\DraftEmail;
 use M2T\Model\Email;
+use M2T\Model\Mailbox;
 use Psr\Log\LoggerInterface;
 
 final class ImapClient
@@ -50,11 +50,11 @@ final class ImapClient
     }
 
     /**
-     * @param Email  $mailAccount
-     * @param string $mailbox
+     * @param Mailbox $mailAccount
+     * @param string  $mailbox
      * @return resource|false
      */
-    private function imapOpen(Email $mailAccount, string $mailbox)
+    private function imapOpen(Mailbox $mailAccount, string $mailbox)
     {
         $stream = @imap_open($mailbox, $mailAccount->email, $mailAccount->getPwd());
         $this->debugErrors();
@@ -115,12 +115,12 @@ final class ImapClient
         return (array) $result;
     }
 
-    private function getMailbox(Email $mailAccount, string $folder = self::FOLDER_INBOX): string
+    private function getMailbox(Mailbox $mailAccount, string $folder = self::FOLDER_INBOX): string
     {
         return "{{$mailAccount->imapHost}:{$mailAccount->imapPort}/imap/{$mailAccount->imapSocketType}}$folder";
     }
 
-    public function check(Email $mailAccount): bool
+    public function check(Mailbox $mailAccount): bool
     {
         $mailbox = $this->getMailbox($mailAccount);
         if (!$stream = $this->imapOpen($mailAccount, $mailbox)) {
@@ -130,7 +130,7 @@ final class ImapClient
         return true;
     }
 
-    public function folderList(Email $mailAccount): array
+    public function folderList(Mailbox $mailAccount): array
     {
         $mailbox = $this->getMailbox($mailAccount, '');
         if (!$stream = $this->imapOpen($mailAccount, $mailbox)) {
@@ -141,7 +141,7 @@ final class ImapClient
         return $result;
     }
 
-    public function headerInfo(Email $mailAccount, int $mailId): array
+    public function headerInfo(Mailbox $mailAccount, int $mailId): array
     {
         $mailbox = $this->getMailbox($mailAccount, '');
         if (!$stream = $this->imapOpen($mailAccount, $mailbox)) {
@@ -152,7 +152,7 @@ final class ImapClient
         return $result;
     }
 
-    public function appendToSent(Email $mailAccount, DraftEmail $draft): bool
+    public function appendToSent(Mailbox $mailAccount, Email $email): bool
     {
         $folder = $this->getFolder($mailAccount->imapHost, self::FOLDER_SENT);
         $mailbox = $this->getMailbox($mailAccount, $folder);
@@ -161,34 +161,34 @@ final class ImapClient
         }
 
         $to = '';
-        foreach ($draft->to as $address) {
+        foreach ($email->to as $address) {
             $to = $address['address'] . ',';
         }
         $to = rtrim($to, ',');
 
-        if ($draft->attachment) {
+        if ($email->attachment) {
             /** @noinspection NonSecureUniqidUsageInspection RandomApiMigrationInspection */
             $boundary = '------=' . md5(uniqid(rand()));
-            $type = (new finfo(FILEINFO_MIME))->buffer($draft->attachment->content);
+            $type = (new finfo(FILEINFO_MIME))->buffer($email->attachment->content);
             $msg = "From: {$mailAccount->email}"
                 . "\r\nTo: $to"
-                . "\r\nSubject: $draft->subject"
+                . "\r\nSubject: $email->subject"
                 . "\r\nMIME-Version: 1.0"
                 . "\r\nContent-Type: multipart/mixed; boundary=\"$boundary\""
                 . "\r\n\r\n--$boundary"
                 . "\r\nContent-Type: text/plain"
-                . "\r\n\r\n$draft->message\r\n"
+                . "\r\n\r\n$email->message\r\n"
                 . "\r\n\r\n--$boundary"
-                . ($type ? "\r\nContent-Type: $type; name=\"{$draft->attachment->name}\"" : '')
+                . ($type ? "\r\nContent-Type: $type; name=\"{$email->attachment->name}\"" : '')
                 . "\r\nContent-Transfer-Encoding: base64"
-                . "\r\nContent-Disposition: attachment; filename=\"{$draft->attachment->name}\""
-                . "\r\n\r\n\r\n" . chunk_split(base64_encode($draft->attachment->content)) . "\r\n"
+                . "\r\nContent-Disposition: attachment; filename=\"{$email->attachment->name}\""
+                . "\r\n\r\n\r\n" . chunk_split(base64_encode($email->attachment->content)) . "\r\n"
                 . "\r\n\r\n--$boundary--\r\n\r\n";
         } else {
             $msg = "From: {$mailAccount->email}"
                 . "\r\nTo: $to"
-                . "\r\nSubject: $draft->subject"
-                . "\r\n\r\n$draft->message\r\n";
+                . "\r\nSubject: $email->subject"
+                . "\r\n\r\n$email->message\r\n";
         }
 
         $result = $this->imapAppend($stream, $mailbox, $msg);
@@ -196,7 +196,7 @@ final class ImapClient
         return $result;
     }
 
-    public function delete(Email $mailAccount, int $mailId): bool
+    public function delete(Mailbox $mailAccount, int $mailId): bool
     {
         $mailbox = $this->getMailbox($mailAccount);
         $stream = $this->imapOpen($mailAccount, $mailbox);
@@ -208,7 +208,7 @@ final class ImapClient
         return $result;
     }
 
-    private function moveTo(Email $mailAccount, int $mailId, string $folder, string $from = self::FOLDER_INBOX): bool
+    private function moveTo(Mailbox $mailAccount, int $mailId, string $folder, string $from = self::FOLDER_INBOX): bool
     {
         if (!$stream = $this->imapOpen($mailAccount, $this->getMailbox($mailAccount, $from))) {
             return false;
@@ -218,19 +218,19 @@ final class ImapClient
         return $result;
     }
 
-    public function moveToSpam(Email $mailAccount, int $mailId): bool
+    public function moveToSpam(Mailbox $mailAccount, int $mailId): bool
     {
         $folder = $this->getFolder($mailAccount->imapHost, self::FOLDER_SPAM);
         return $this->moveTo($mailAccount, $mailId, $folder);
     }
 
-    public function moveToTrash(Email $mailAccount, int $mailId): bool
+    public function moveToTrash(Mailbox $mailAccount, int $mailId): bool
     {
         $folder = $this->getFolder($mailAccount->imapHost, self::FOLDER_TRASH);
         return $this->moveTo($mailAccount, $mailId, $folder);
     }
 
-    private function setFlag(Email $mailAccount, int $mailId, string $flag): bool
+    private function setFlag(Mailbox $mailAccount, int $mailId, string $flag): bool
     {
         if (!$stream = $this->imapOpen($mailAccount, $this->getMailbox($mailAccount))) {
             return false;
@@ -240,7 +240,7 @@ final class ImapClient
         return $result;
     }
 
-    private function unsetFlag(Email $mailAccount, int $mailId, string $flag): bool
+    private function unsetFlag(Mailbox $mailAccount, int $mailId, string $flag): bool
     {
         if (!$stream = $this->imapOpen($mailAccount, $this->getMailbox($mailAccount))) {
             return false;
@@ -250,12 +250,12 @@ final class ImapClient
         return $result;
     }
 
-    public function flagSeenSet(Email $mailAccount, int $mailId): bool
+    public function flagSeenSet(Mailbox $mailAccount, int $mailId): bool
     {
         return $this->setFlag($mailAccount, $mailId, '\Seen');
     }
 
-    public function flagSeenUnset(Email $mailAccount, int $mailId): bool
+    public function flagSeenUnset(Mailbox $mailAccount, int $mailId): bool
     {
         return $this->unsetFlag($mailAccount, $mailId, '\Seen');
     }

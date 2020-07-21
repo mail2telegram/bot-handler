@@ -2,8 +2,8 @@
 
 namespace M2T;
 
-use M2T\Model\DraftEmail;
 use M2T\Model\Email;
+use M2T\Model\Mailbox;
 
 class State
 {
@@ -11,8 +11,8 @@ class State
     public string $handler;
     public string $action; // next action
     public bool $changed = false;
-    public ?Email $mailbox = null;
-    public ?DraftEmail $draftEmail = null;
+    public ?Mailbox $mailbox = null;
+    public ?Email $draftEmail = null;
 
     public function __construct(
         int $chatId,

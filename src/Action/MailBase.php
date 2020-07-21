@@ -5,7 +5,7 @@ namespace M2T\Action;
 use M2T\AccountManager;
 use M2T\Client\ImapClient;
 use M2T\Client\TelegramClient;
-use M2T\Model\Email;
+use M2T\Model\Mailbox;
 
 abstract class MailBase
 {
@@ -34,7 +34,7 @@ abstract class MailBase
         return $callback['message']['chat']['id'];
     }
 
-    protected function getEmailAccountOrReply(array $callback, string $email): ?Email
+    protected function getEmailAccountOrReply(array $callback, string $email): ?Mailbox
     {
         $chatId = $this->getChatId($callback);
         $account = $this->accountManager->load($chatId);

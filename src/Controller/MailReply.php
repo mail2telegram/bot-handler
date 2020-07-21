@@ -4,7 +4,7 @@ namespace M2T\Controller;
 
 use M2T\Action\MailDelete;
 use M2T\Action\MailSpam;
-use M2T\Model\DraftEmail;
+use M2T\Model\Email;
 
 class MailReply extends BaseMail
 {
@@ -27,9 +27,9 @@ class MailReply extends BaseMail
             return;
         }
 
-        $draftEmail = new DraftEmail();
+        $draftEmail = new Email();
         $draftEmail->from = $matches[1];
-        $draftEmail->to =  [['address' => $matches2[1]]];
+        $draftEmail->to = [['address' => $matches2[1]]];
         $draftEmail->subject = 'Re: ' . ($matches3[1] ?? '');
 
         $mailbox = $this->accountManager->mailboxGet($account, $draftEmail->from);

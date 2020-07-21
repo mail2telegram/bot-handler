@@ -1,11 +1,11 @@
 <?php
 
-use M2T\Model\Email;
+use M2T\Model\Mailbox;
 
 $pwd = (require './config.php')['testEmailPwd'];
 return [
     'Gmail' => [
-        new Email(
+        new Mailbox(
             'mail2telegram.app@gmail.com',
             $pwd,
             'imap.gmail.com',
@@ -18,7 +18,7 @@ return [
         true,
     ],
     'Yandex' => [
-        new Email(
+        new Mailbox(
             'mail2telegram.app@yandex.ru',
             $pwd,
             'imap.yandex.com',
@@ -31,7 +31,7 @@ return [
         true,
     ],
     'MailRu' => [
-        new Email(
+        new Mailbox(
             'mail2telegram.app@mail.ru',
             $pwd,
             'imap.mail.ru',
@@ -44,7 +44,7 @@ return [
         true,
     ],
     'Gmail | wrong pwd' => [
-        new Email(
+        new Mailbox(
             'mail2telegram.app@gmail.com',
             'XXX',
             'imap.gmail.com',
@@ -57,7 +57,7 @@ return [
         false,
     ],
     'Gmail | wrong host' => [
-        new Email(
+        new Mailbox(
             'mail2telegram.app@gmail.com',
             'XXX',
             'imap.gmail-xxxxxxxxxxxxxxxx.com',

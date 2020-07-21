@@ -6,8 +6,8 @@ use BaseTester;
 use Codeception\Test\Unit;
 use M2T\App;
 use M2T\Client\ImapClient;
-use M2T\Model\DraftEmail;
 use M2T\Model\Email;
+use M2T\Model\Mailbox;
 use Psr\Log\LoggerInterface;
 
 class ImapClientTest extends Unit
@@ -25,7 +25,7 @@ class ImapClientTest extends Unit
      * @param $mailAccount
      * @param $expected
      */
-    public function testCheck(Email $mailAccount, bool $expected): void
+    public function testCheck(Mailbox $mailAccount, bool $expected): void
     {
         $client = new ImapClient(App::get(LoggerInterface::class));
         $result = $client->check($mailAccount);
@@ -37,13 +37,13 @@ class ImapClientTest extends Unit
      * @param $mailAccount
      * @param $expected
      */
-    public function testAppendToSent(Email $mailAccount, bool $expected): void
+    public function testAppendToSent(Mailbox $mailAccount, bool $expected): void
     {
         if (!$expected) {
             return;
         }
         $client = new ImapClient(App::get(LoggerInterface::class));
-        $email = new DraftEmail($mailAccount->email, [['address' => $mailAccount->email]], 'test', 'test');
+        $email = new Email($mailAccount->email, [['address' => $mailAccount->email]], 'test', 'test');
         $result = $client->appendToSent($mailAccount, $email);
         static::assertSame($expected, $result);
     }
@@ -53,7 +53,7 @@ class ImapClientTest extends Unit
      * @param $mailAccount
      * @param $expected
      */
-    protected function testFolderList(Email $mailAccount, bool $expected): void
+    protected function testFolderList(Mailbox $mailAccount, bool $expected): void
     {
         if (!$expected) {
             return;

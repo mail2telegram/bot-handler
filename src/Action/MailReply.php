@@ -6,8 +6,8 @@ use M2T\AccountManager;
 use M2T\Client\ImapClient;
 use M2T\Client\TelegramClient;
 use M2T\Controller\MailSend;
-use M2T\Model\DraftEmail;
 use M2T\Model\Email;
+use M2T\Model\Mailbox;
 use M2T\State;
 use M2T\StateManager;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -46,7 +46,7 @@ class MailReply extends MailBase
         }
 
         $state = new State($chatId, MailSend::class, MailSend::ACTION_INSERT_MSG_AND_SEND);
-        $state->draftEmail = new DraftEmail(
+        $state->draftEmail = new Email(
             $mailAccount->email,
             $to,
             'Re: ' . ($headers['subject'] ?? '')
@@ -61,13 +61,13 @@ class MailReply extends MailBase
     }
 
     /**
-     * @param Email $mailAccount
-     * @param array $headers
+     * @param Mailbox $mailAccount
+     * @param array   $headers
      * @return array [['address' => '', 'name' => ''], ...]
      * @SuppressWarnings(PHPMD)
      * @noinspection PhpUnusedParameterInspection
      */
-    protected function getTo(Email $mailAccount, array $headers): array
+    protected function getTo(Mailbox $mailAccount, array $headers): array
     {
         return PHPMailer::parseAddresses($headers['reply_toaddress'] ?? $headers['fromaddress']);
     }

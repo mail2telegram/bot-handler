@@ -197,16 +197,16 @@
         },
         {
             "name": "mail2telegram/common",
-            "version": "v1.0.14",
+            "version": "v1.0.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mail2telegram/common.git",
-                "reference": "29bdb687296940fc2c772451e81c8e3ed9ec2c11"
+                "reference": "966ecc36d8cd50a7c995495173c10cbc657b4105"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mail2telegram/common/zipball/29bdb687296940fc2c772451e81c8e3ed9ec2c11",
-                "reference": "29bdb687296940fc2c772451e81c8e3ed9ec2c11",
+                "url": "https://api.github.com/repos/mail2telegram/common/zipball/966ecc36d8cd50a7c995495173c10cbc657b4105",
+                "reference": "966ecc36d8cd50a7c995495173c10cbc657b4105",
                 "shasum": ""
             },
             "require": {
@@ -275,10 +275,10 @@
                 }
             ],
             "support": {
-                "source": "https://github.com/mail2telegram/common/tree/v1.0.14",
+                "source": "https://github.com/mail2telegram/common/tree/v1.0.15",
                 "issues": "https://github.com/mail2telegram/common/issues"
             },
-            "time": "2020-07-10T10:19:03+00:00"
+            "time": "2020-07-21T09:43:35+00:00"
         },
         {
             "name": "monolog/monolog",
