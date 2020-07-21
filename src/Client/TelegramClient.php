@@ -64,7 +64,7 @@ class TelegramClient
             : ['result' => $response['result']];
     }
 
-    public function sendMessage(int $chatId, string $text, string $replyMarkup = ''): bool
+    public function sendMessage(int $chatId, string $text, array $replyMarkup = []): bool
     {
         $data = [
             'form_params' => [
@@ -72,11 +72,11 @@ class TelegramClient
                 'text' => $text,
                 'parse_mode' => 'html',
                 'disable_web_page_preview' => true,
-                'reply_markup' => json_encode(['remove_keyboard' => true]),
+                'reply_markup' => '{"remove_keyboard":true}',
             ],
         ];
         if ($replyMarkup) {
-            $data['form_params']['reply_markup'] = $replyMarkup;
+            $data['form_params']['reply_markup'] = json_encode($replyMarkup);
         }
         $result = $this->execute('sendMessage', $data);
         return (bool) $result;

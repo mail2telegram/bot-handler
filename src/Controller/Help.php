@@ -7,6 +7,17 @@ use M2T\State;
 
 class Help
 {
+    protected const MSG = <<<'HELP'
+        <b>Добрый день!</b>
+        Вы можете:
+        /register - Зарегистрировать email
+        /send - Отправить письмо
+        /edit - Редактировать настройки ящика
+        /delete - Удалить ящик
+        /list - Отобразить список зарегистрированных ящиков
+        /help - Показать это сообщение
+        HELP;
+
     protected State $state;
     protected TelegramClient $messenger;
 
@@ -18,14 +29,6 @@ class Help
 
     public function actionIndex(): void
     {
-        $msg = '<b>Добрый день!</b>' . PHP_EOL .
-            'Вы можете:' . PHP_EOL .
-            '/register - Зарегистрировать email' . PHP_EOL .
-            '/send - Отправить письмо' . PHP_EOL .
-            '/edit - Редактировать настройки ящика' . PHP_EOL .
-            '/delete - Удалить ящик' . PHP_EOL .
-            '/list - Отобразить список зарегистрированных ящиков' . PHP_EOL .
-            '/help - Показать это сообщение' . PHP_EOL;
-        $this->messenger->sendMessage($this->state->chatId, $msg);
+        $this->messenger->sendMessage($this->state->chatId, static::MSG);
     }
 }

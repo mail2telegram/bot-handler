@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection JsonEncodingApiUsageInspection */
-
 namespace M2T\Controller;
 
 use M2T\AccountManager;
@@ -32,8 +30,8 @@ class MailboxAdd extends BaseMailbox
     protected const MSG_ERROR_CHECK_CONNECT = 'Не удалось подключиться к вашему почтовому ящику.'
     . PHP_EOL . 'Проверьте адрес, пароль, настройки и попробуйте еще раз.';
     protected const MSG_CONFIRM_OR_TYPE_NEW = 'Подтвердите значение %value% либо введите свое';
-    protected const MSG_COMPLETE
-        = 'Спасибо, регистрация email завершена! Сохраненные настройки: ' . PHP_EOL . '%new_values%';
+    protected const MSG_COMPLETE = 'Спасибо, регистрация email завершена!'
+    . PHP_EOL . 'Сохраненные настройки: ' . PHP_EOL . '%new_values%';
     protected const MSG_YES = 'Да';
     protected const MSG_NO = 'Нет';
     protected const MSG_CANCEL = 'Отменено!';
@@ -65,7 +63,7 @@ class MailboxAdd extends BaseMailbox
         $this->messenger->sendMessage(
             $this->state->chatId,
             static::MSG_INSERT_EMAIL,
-            json_encode(['force_reply' => true])
+            ['force_reply' => true]
         );
         $this->setState(static::ACTION_CONFIG);
     }
@@ -79,7 +77,7 @@ class MailboxAdd extends BaseMailbox
             $this->messenger->sendMessage(
                 $this->state->chatId,
                 static::MSG_INCORRECT_EMAIL,
-                json_encode(['force_reply' => true])
+                ['force_reply' => true]
             );
             $this->setState(static::ACTION_CONFIG);
             return;
@@ -93,12 +91,10 @@ class MailboxAdd extends BaseMailbox
             $this->messenger->sendMessage(
                 $this->state->chatId,
                 static::MSG_EMAIL_ALREADY_EXISTS,
-                json_encode(
-                    [
-                        'keyboard' => [[static::MSG_YES], [static::MSG_NO]],
-                        'one_time_keyboard' => true,
-                    ]
-                )
+                [
+                    'keyboard' => [[static::MSG_YES], [static::MSG_NO]],
+                    'one_time_keyboard' => true,
+                ]
             );
             $this->setState(static::ACTION_REQUEST_IMAP_HOST);
             return;
@@ -120,15 +116,13 @@ class MailboxAdd extends BaseMailbox
         $this->messenger->sendMessage(
             $this->state->chatId,
             static::MSG_EMAIL_AUTOCONFIG_GET . PHP_EOL . $mailbox->getSettings(),
-            json_encode(
-                [
-                    'keyboard' => [
-                        [static::MSG_BTN_ACCEPT_AUTOCONFIG],
-                        [static::MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG],
-                    ],
-                    'one_time_keyboard' => true,
-                ]
-            )
+            [
+                'keyboard' => [
+                    [static::MSG_BTN_ACCEPT_AUTOCONFIG],
+                    [static::MSG_BTN_DO_NOT_ACCEPT_AUTOCONFIG],
+                ],
+                'one_time_keyboard' => true,
+            ]
         );
         $this->setState(static::ACTION_REQUEST_IMAP_HOST);
     }
@@ -190,7 +184,7 @@ class MailboxAdd extends BaseMailbox
         $this->messenger->sendMessage(
             $this->state->chatId,
             static::MSG_INSERT_PASSWORD,
-            json_encode(['force_reply' => true])
+            ['force_reply' => true]
         );
         $this->setState(static::ACTION_COMPLETE);
     }
@@ -258,12 +252,10 @@ class MailboxAdd extends BaseMailbox
         $this->messenger->sendMessage(
             $this->state->chatId,
             $msg,
-            json_encode(
-                [
-                    'keyboard' => [[(string) $mailbox->$field]],
-                    'one_time_keyboard' => true,
-                ]
-            )
+            [
+                'keyboard' => [[(string) $mailbox->$field]],
+                'one_time_keyboard' => true,
+            ]
         );
 
         $mapNext = [

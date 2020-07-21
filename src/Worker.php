@@ -46,7 +46,6 @@ final class Worker
 
     public function loop(): void
     {
-        $this->channel->basic_qos(null, 1, null);
         $this->channel->exchange_declare(App::get('queueExchange'), 'x-consistent-hash', false, true, false);
 
         $queue = $this->locator->lock();

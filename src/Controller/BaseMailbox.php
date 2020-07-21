@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection JsonEncodingApiUsageInspection */
-
 namespace M2T\Controller;
 
 use M2T\AccountManager;
@@ -39,11 +37,11 @@ abstract class BaseMailbox
         $this->state->changed = true;
     }
 
-    protected function getAccountOrReply(): ?Account
+    protected function getAccountOrReply(string $msg = ''): ?Account
     {
         $account = $this->accountManager->load($this->state->chatId);
         if (!$account || !$account->emails) {
-            $this->messenger->sendMessage($this->state->chatId, static::MSG_EMPTY_LIST);
+            $this->messenger->sendMessage($this->state->chatId, $msg ?: static::MSG_EMPTY_LIST);
             return null;
         }
         return $account;
@@ -62,12 +60,10 @@ abstract class BaseMailbox
         $this->messenger->sendMessage(
             $this->state->chatId,
             static::MSG_CHOOSE_EMAIL,
-            json_encode(
-                [
-                    'keyboard' => $list,
-                    'one_time_keyboard' => true,
-                ]
-            )
+            [
+                'keyboard' => $list,
+                'one_time_keyboard' => true,
+            ]
         );
     }
 

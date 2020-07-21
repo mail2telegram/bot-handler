@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection JsonEncodingApiUsageInspection */
-
 namespace M2T\Controller;
 
 class MailboxEdit extends BaseMailbox
@@ -27,11 +25,14 @@ class MailboxEdit extends BaseMailbox
 
     public function actionShowCurrentSettings(array $update): void
     {
-        $msg = &$update['message'];
-        $emailString = $msg['text'];
+        if (!$account = $this->getAccountOrReply()) {
+            return;
+        }
 
-        $account = $this->accountManager->load($this->state->chatId);
-        if (!$account || !$account->emails || !$mailbox = $this->accountManager->mailboxGet($account, $emailString)) {
+        $msg = &$update['message'];
+        $emailString = &$msg['text'];
+
+        if (!$mailbox = $this->accountManager->mailboxGet($account, $emailString)) {
             $this->messenger->sendMessage(
                 $this->state->chatId,
                 str_replace('%email%', $emailString, static::MSG_EMAIL_NOT_FOUND),
@@ -42,12 +43,10 @@ class MailboxEdit extends BaseMailbox
         $this->messenger->sendMessage(
             $this->state->chatId,
             static::MSG_CONFIRM_RUN . PHP_EOL . $mailbox->getSettings(),
-            json_encode(
-                [
-                    'keyboard' => [[static::MSG_YES_RUN_EDIT], [static::MSG_NO],],
-                    'one_time_keyboard' => true,
-                ]
-            )
+            [
+                'keyboard' => [[static::MSG_YES_RUN_EDIT], [static::MSG_NO]],
+                'one_time_keyboard' => true,
+            ]
         );
 
         $this->state->mailbox = $mailbox;

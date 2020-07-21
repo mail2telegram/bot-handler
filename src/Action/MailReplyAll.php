@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection JsonEncodingApiUsageInspection */
-
 namespace M2T\Action;
 
 use M2T\Model\Email;

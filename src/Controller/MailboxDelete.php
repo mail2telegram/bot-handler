@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection JsonEncodingApiUsageInspection */
-
 namespace M2T\Controller;
 
 class MailboxDelete extends BaseMailbox
@@ -33,7 +31,8 @@ class MailboxDelete extends BaseMailbox
         }
 
         $msg = &$update['message'];
-        $emailString = $msg['text'];
+        $emailString = &$msg['text'];
+
         if (!$this->accountManager->mailboxExist($account, $emailString)) {
             $this->sendErrorEmailNotFound($emailString);
             return;
@@ -42,15 +41,13 @@ class MailboxDelete extends BaseMailbox
         $this->messenger->sendMessage(
             $this->state->chatId,
             str_replace('%email%', $emailString, static::MSG_BTN_CONFIRM_DELETE),
-            json_encode(
-                [
-                    'keyboard' => [
-                        [str_replace('%email%', $emailString, static::MSG_BTN_CONFIRMED)],
-                        [static::MSG_BTN_NOT_CONFIRMED],
-                    ],
-                    'one_time_keyboard' => true,
-                ]
-            )
+            [
+                'keyboard' => [
+                    [str_replace('%email%', $emailString, static::MSG_BTN_CONFIRMED)],
+                    [static::MSG_BTN_NOT_CONFIRMED],
+                ],
+                'one_time_keyboard' => true,
+            ]
         );
         $this->setState(static::ACTION_DELETE);
     }
@@ -58,23 +55,30 @@ class MailboxDelete extends BaseMailbox
     public function actionDelete(array $update): void
     {
         $msg = &$update['message'];
-        $emailString = $msg['text'];
+        $emailString = &$msg['text'];
 
         if ($emailString === static::MSG_BTN_NOT_CONFIRMED) {
             $this->messenger->sendMessage($this->state->chatId, static::MSG_DELETE_CANCELED);
             return;
         }
 
-        $account = $this->accountManager->load($this->state->chatId);
-        if (!$account || !$account->emails || !isset($msg['entities'][0]) || $msg['entities'][0]['type'] !== 'email') {
+        if (!$account = $this->getAccountOrReply()) {
+            return;
+        }
+
+        if (!isset($msg['entities'][0]['type']) || $msg['entities'][0]['type'] !== 'email') {
             $this->sendErrorEmailNotFound();
             return;
         }
 
         $emailString = mb_substr($emailString, $msg['entities'][0]['offset'], $msg['entities'][0]['length']);
-        $email = $this->accountManager->mailboxGet($account, $emailString);
-        if ($email === null || !$this->accountManager->mailboxDelete($account, $email->email)) {
+        if (!$email = $this->accountManager->mailboxGet($account, $emailString)) {
             $this->sendErrorEmailNotFound($emailString);
+            return;
+        }
+
+        if (!$this->accountManager->mailboxDelete($account, $email->email)) {
+            $this->replyError();
             return;
         }
 

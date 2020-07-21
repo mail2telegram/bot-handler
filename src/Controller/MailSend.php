@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection JsonEncodingApiUsageInspection */
-
 namespace M2T\Controller;
 
 use M2T\App;
@@ -46,12 +44,10 @@ class MailSend extends BaseMail
         $this->messenger->sendMessage(
             $this->state->chatId,
             static::MSG_CHOOSE_EMAIL,
-            json_encode(
-                [
-                    'keyboard' => $list,
-                    'one_time_keyboard' => true,
-                ]
-            )
+            [
+                'keyboard' => $list,
+                'one_time_keyboard' => true,
+            ]
         );
         $this->setState(static::ACTION_INSERT_EMAIL_ACCOUNT);
     }

@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection JsonEncodingApiUsageInspection */
-
 namespace M2T\Action;
 
 use M2T\AccountManager;
@@ -58,7 +56,7 @@ class MailReply extends MailBase
         $this->messenger->sendMessage(
             $chatId,
             static::MSG_INSERT_MESSAGE,
-            json_encode(['force_reply' => true])
+            ['force_reply' => true]
         );
     }
 
