@@ -2,6 +2,7 @@
 
 namespace M2T\Client;
 
+use finfo;
 use M2T\Model\DraftEmail;
 use M2T\Model\Email;
 use Psr\Log\LoggerInterface;
@@ -151,7 +152,7 @@ final class ImapClient
         return $result;
     }
 
-    public function appendToSent(Email $mailAccount, DraftEmail $email): bool
+    public function appendToSent(Email $mailAccount, DraftEmail $draft): bool
     {
         $folder = $this->getFolder($mailAccount->imapHost, self::FOLDER_SENT);
         $mailbox = $this->getMailbox($mailAccount, $folder);
@@ -160,15 +161,36 @@ final class ImapClient
         }
 
         $to = '';
-        foreach ($email->to as $address) {
+        foreach ($draft->to as $address) {
             $to = $address['address'] . ',';
         }
         $to = rtrim($to, ',');
 
-        $msg = "From: {$mailAccount->email}"
-            . "\r\nTo: $to"
-            . "\r\nSubject: $email->subject"
-            . "\r\n\r\n$email->message\r\n";
+        if ($draft->attachment) {
+            /** @noinspection NonSecureUniqidUsageInspection RandomApiMigrationInspection */
+            $boundary = '------=' . md5(uniqid(rand()));
+            $type = (new finfo(FILEINFO_MIME))->buffer($draft->attachment->content);
+            $msg = "From: {$mailAccount->email}"
+                . "\r\nTo: $to"
+                . "\r\nSubject: $draft->subject"
+                . "\r\nMIME-Version: 1.0"
+                . "\r\nContent-Type: multipart/mixed; boundary=\"$boundary\""
+                . "\r\n\r\n--$boundary"
+                . "\r\nContent-Type: text/plain"
+                . "\r\n\r\n$draft->message\r\n"
+                . "\r\n\r\n--$boundary"
+                . ($type ? "\r\nContent-Type: $type; name=\"{$draft->attachment->name}\"" : '')
+                . "\r\nContent-Transfer-Encoding: base64"
+                . "\r\nContent-Disposition: attachment; filename=\"{$draft->attachment->name}\""
+                . "\r\n\r\n\r\n" . chunk_split(base64_encode($draft->attachment->content)) . "\r\n"
+                . "\r\n\r\n--$boundary--\r\n\r\n";
+        } else {
+            $msg = "From: {$mailAccount->email}"
+                . "\r\nTo: $to"
+                . "\r\nSubject: $draft->subject"
+                . "\r\n\r\n$draft->message\r\n";
+        }
+
         $result = $this->imapAppend($stream, $mailbox, $msg);
         imap_close($stream);
         return $result;

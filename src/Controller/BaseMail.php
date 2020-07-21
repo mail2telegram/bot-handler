@@ -6,6 +6,7 @@ use M2T\AccountManager;
 use M2T\Client\ImapClient;
 use M2T\Client\SmtpClient;
 use M2T\Client\TelegramClient;
+use M2T\Model\Attachment;
 use M2T\Model\DraftEmail;
 use M2T\Model\Email;
 use M2T\State;
@@ -46,7 +47,6 @@ abstract class BaseMail extends BaseMailbox
         // Gmail при отправке по SMTP сам добавляет письмо в отправленные.
         // А Яндекс нет. В крайнем случае будет добавлено дважды.
         if ($mailAccount->smtpHost !== 'smtp.gmail.com') {
-            // @todo add $attachment
             $this->imapClient->appendToSent($mailAccount, $email);
         }
 
@@ -58,20 +58,24 @@ abstract class BaseMail extends BaseMailbox
     {
         $email->message = $update['message']['text'] ?? '';
         $email->message = $update['message']['caption'] ?? $email->message;
-        $email->attachment = [];
 
         $fileName = '';
         $fileContent = '';
         $fileId = '';
         $action = '';
 
-        // @todo check other upload types (video, audio, etc)
         if (isset($update['message']['document'])) {
             $fileId = $update['message']['document']['file_id'];
             $action = 'upload_document';
         } elseif (isset($update['message']['photo'])) {
             $fileId = $update['message']['photo'][1]['file_id'];
             $action = 'upload_photo';
+        } elseif (isset($update['message']['video'])) {
+            $fileId = $update['message']['video']['file_id'];
+            $action = 'upload_video';
+        } elseif (isset($update['message']['audio'])) {
+            $fileId = $update['message']['audio']['file_id'];
+            $action = 'upload_audio';
         }
 
         if ($action) {
@@ -81,7 +85,7 @@ abstract class BaseMail extends BaseMailbox
                 return;
             }
             if ($fileContent) {
-                $email->attachment = ['file' => $fileContent, 'fileName' => $fileName];
+                $email->attachment = new Attachment($fileName, $fileContent);
             }
         }
     }

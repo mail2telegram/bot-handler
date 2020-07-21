@@ -39,7 +39,7 @@ class SmtpClient
         try {
             if (
                 $email->attachment
-                && !$this->mailer->addStringAttachment($email->attachment['file'], $email->attachment['fileName'])
+                && !$this->mailer->addStringAttachment($email->attachment->content, $email->attachment->name)
             ) {
                 return false;
             }
