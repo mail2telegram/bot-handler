@@ -68,8 +68,9 @@ final class Worker
             /** @noinspection PhpUnhandledExceptionInspection */
             $this->channel->wait();
         }
-        $this->channel->queue_unbind($queue, App::get('queueExchange'), App::get('queueRoutingKey'));
+
         $this->locator->release($queue);
+        $this->channel->queue_unbind($queue, App::get('queueExchange'), App::get('queueRoutingKey'));
         $this->logger->info('Worker finished');
     }
 

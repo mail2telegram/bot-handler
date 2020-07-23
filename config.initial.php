@@ -57,7 +57,17 @@ return [
                 $config['host'],
                 $config['port'],
                 $config['user'],
-                $config['pwd']
+                $config['pwd'],
+                '/',
+                false,
+                'AMQPLAIN',
+                null,
+                'en_US',
+                3.0,
+                3.0,
+                null,
+                true,
+                60
             );
         }
         return $connect;
