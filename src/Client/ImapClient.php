@@ -7,6 +7,8 @@ use M2T\Model\Email;
 use M2T\Model\Mailbox;
 use Psr\Log\LoggerInterface;
 
+// @phan-file-suppress PhanTypeMismatchArgumentInternalProbablyReal, PhanTypeMismatchReturn
+
 final class ImapClient
 {
     private const FOLDER_INBOX = 'INBOX';
@@ -54,7 +56,7 @@ final class ImapClient
      * @param string  $mailbox
      * @return resource|false
      */
-    private function imapOpen(Mailbox $mailAccount, string $mailbox)
+    private function imapOpen(Mailbox $mailAccount, string $mailbox): bool
     {
         $stream = @imap_open($mailbox, $mailAccount->email, $mailAccount->getPwd());
         $this->debugErrors();

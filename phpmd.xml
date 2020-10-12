@@ -13,5 +13,6 @@
         <exclude name="ElseExpression"/>
         <exclude name="StaticAccess"/>
         <exclude name="IfStatementAssignment"/>
+        <exclude name="ErrorControlOperator"/>
     </rule>
 </ruleset>
